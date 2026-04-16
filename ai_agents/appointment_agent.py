@@ -2,7 +2,9 @@ from agents import Agent
 from config.llm import get_model
 
 from tools.appointment_tools import (
+    get_current_datetime,
     get_doctor_availability,
+    is_slot_taken,
     suggest_available_slots,
     book_appointment
 )
@@ -81,7 +83,9 @@ RULES:
 # TOOLS LIST
 tools = [
     check_patient_existence,
+    get_current_datetime,
     get_doctor_availability,
+    is_slot_taken,
     suggest_available_slots,
     book_appointment
 ]

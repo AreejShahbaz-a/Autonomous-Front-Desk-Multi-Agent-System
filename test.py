@@ -3,27 +3,27 @@ from agents import Agent
 from agents.run import Runner
 from ai_agents.patient_agent import patient_agent
 from ai_agents.information_agent import information_agent
+from ai_agents.appointment_agent import appointment_agent
 from memory.session import get_session
 
 
 async def main():
-    session = get_session("user_1")  
+    session = get_session("test_session")  
 
-    # Turn 1
-    result = await Runner.run(
-        patient_agent,
-        "My patient number is P003",
-        session=session
-    )
-    print(result.final_output)
+    while True:
+        user_input = input("You: ")
 
-    # Turn 2 (context is remembered)
-    result = await Runner.run(
-        patient_agent,
-        "what is my name",
-        session=session
-    )
-    print(result.final_output)
+        if user_input.lower() in ["exit", "quit"]:
+            print("Session ended.")
+            break
+
+        result = await Runner.run(
+            appointment_agent,
+            user_input,
+            session=session
+        )
+
+        print("Agent:", result.final_output)
 
 
 if __name__ == "__main__":

@@ -14,3 +14,6 @@ __pycache__/
 # ide
 .vscode/
 .idea/
+
+#google calender service account
+gen-lang-client-0509919519-61db2146b864.json

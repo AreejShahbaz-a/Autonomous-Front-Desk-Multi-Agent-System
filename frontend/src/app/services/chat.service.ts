@@ -4,21 +4,80 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Message } from '../models/message.model';
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+  updatedAt: Date;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
   private http = inject(HttpClient);
   
+  private sessionsSubject = new BehaviorSubject<ChatSession[]>([
+    { id: '1', title: 'New Chat', messages: [], updatedAt: new Date() }
+  ]);
+  public sessions$ = this.sessionsSubject.asObservable();
+
+  private activeSessionIdSubject = new BehaviorSubject<string | null>('1');
+  public activeSessionId$ = this.activeSessionIdSubject.asObservable();
+
   private messagesSubject = new BehaviorSubject<Message[]>([]);
   public messages$ = this.messagesSubject.asObservable();
 
   private isTypingSubject = new BehaviorSubject<boolean>(false);
   public isTyping$ = this.isTypingSubject.asObservable();
 
+  constructor() {
+    this.activeSessionId$.subscribe(id => {
+      const activeSession = this.sessionsSubject.value.find(s => s.id === id);
+      this.messagesSubject.next(activeSession ? activeSession.messages : []);
+    });
+  }
+
+  createNewSession() {
+    const newSession: ChatSession = {
+      id: Date.now().toString(),
+      title: 'New Chat',
+      messages: [],
+      updatedAt: new Date()
+    };
+    this.sessionsSubject.next([newSession, ...this.sessionsSubject.value]);
+    this.setActiveSession(newSession.id);
+  }
+
+  setActiveSession(id: string) {
+    this.activeSessionIdSubject.next(id);
+  }
+
   sendMessage(content: string) {
+    const activeId = this.activeSessionIdSubject.value;
+    if (!activeId) return;
+
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content, timestamp: new Date() };
-    this.messagesSubject.next([...this.messagesSubject.value, userMsg]);
+    
+    // Update active session messages
+    const currentSessions = this.sessionsSubject.value;
+    const sessionIndex = currentSessions.findIndex(s => s.id === activeId);
+    
+    if (sessionIndex > -1) {
+      const updatedSession = { ...currentSessions[sessionIndex] };
+      updatedSession.messages = [...updatedSession.messages, userMsg];
+      
+      // Auto-generate title from first message if it's "New Chat"
+      if (updatedSession.title === 'New Chat') {
+        updatedSession.title = content.substring(0, 30) + (content.length > 30 ? '...' : '');
+      }
+      
+      updatedSession.updatedAt = new Date();
+      currentSessions[sessionIndex] = updatedSession;
+      this.sessionsSubject.next([...currentSessions]);
+      this.messagesSubject.next(updatedSession.messages);
+    }
+
     this.isTypingSubject.next(true);
 
     this.http.post<Message>('/api/chat', { message: content }).pipe(
@@ -28,7 +87,21 @@ export class ChatService {
       })
     ).subscribe((responseMsg: any) => {
       this.isTypingSubject.next(false);
-      this.messagesSubject.next([...this.messagesSubject.value, responseMsg]);
+      
+      const latestSessions = this.sessionsSubject.value;
+      const actIdx = latestSessions.findIndex(s => s.id === activeId);
+      if (actIdx > -1) {
+        const updatedSession = { ...latestSessions[actIdx] };
+        updatedSession.messages = [...updatedSession.messages, responseMsg];
+        updatedSession.updatedAt = new Date();
+        latestSessions[actIdx] = updatedSession;
+        this.sessionsSubject.next([...latestSessions]);
+        
+        // Update messages view if this is still the active session
+        if (this.activeSessionIdSubject.value === activeId) {
+          this.messagesSubject.next(updatedSession.messages);
+        }
+      }
     });
   }
 }

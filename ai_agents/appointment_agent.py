@@ -7,7 +7,8 @@ from tools.appointment_tools import (
     is_slot_taken,
     suggest_available_slots,
     book_appointment,
-    get_doctor_information
+    get_doctor_information,
+    parse_appointment_datetime
 )
 from tools.patient_tools import check_patient_existence
 
@@ -109,6 +110,7 @@ BEHAVIOR RULES (STRICT)
 - NEVER allow booking outside suggested slots
 - ALWAYS enforce the correct workflow order
 - ALWAYS prioritize accuracy and data integrity
+- Always normalize date/time using parse_appointment_datetime tool.
 
 ========================================
 RESPONSE STYLE
@@ -117,6 +119,7 @@ RESPONSE STYLE
 - Use a professional, concise, and formal tone
 - Avoid unnecessary explanations
 - Keep responses clear and structured
+- Do not use techinal words like system calls or talk about inner workings
 
 ========================================
 CRITICAL SCOPE LIMITATION
@@ -139,7 +142,7 @@ tools = [
     is_slot_taken,
     suggest_available_slots,
     book_appointment,
-    get_doctor_information
+    parse_appointment_datetime
 ]
 
 appointment_agent = Agent(

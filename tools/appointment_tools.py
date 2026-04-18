@@ -4,37 +4,78 @@ import datetime
 import sqlite3
 from db.database import get_connection
 from datetime import timedelta
+import dateparser
 
 @function_tool
 def get_current_datetime():
     """Returns the current date and time. Use this to calculate 'tomorrow' or 'next week'."""
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+
 @function_tool
-def get_doctor_information(doctor_name: str) :
+def parse_appointment_datetime(user_input: str):
     """
-    Fetch doctor information. For internal use.
-    Never disclose doctor_id to user. 
+    Converts natural language date/time into structured format.
+    """
+
+    parsed = dateparser.parse(user_input, settings={"PREFER_DATES_FROM": "future"})
+
+    if not parsed:
+        return "INVALID"
+
+    return {
+        "appointment_date": parsed.strftime("%Y-%m-%d"),
+        "appointment_time": parsed.strftime("%H:%M")
+    }
+
+def get_doctor_id(doctor_name: str):
+    """
+    Returns doctor_id for a given doctor_name.
+    Used for mapping user input to internal system IDs.
     """
 
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT doctor_id, doctor_name, specialization, available_days
+        SELECT doctor_id
         FROM doctors
-    """)
+        WHERE doctor_name = ?
+    """, (doctor_name,))
 
-    results = cursor.fetchall()
+    row = cursor.fetchone()
     conn.close()
 
-    if not results:
-        return "No doctors found."
-    
-    return results
+    if not row:
+        return "DOCTOR_NOT_FOUND"
 
+    return row[0]
 
 @function_tool
+def get_doctor_information(doctor_name: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT doctor_name, specialization, available_days
+        FROM doctors
+        WHERE doctor_name = ?
+    """, (doctor_name,))
+
+    result = cursor.fetchone()
+    conn.close()
+
+    if not result:
+        return "DOCTOR_NOT_FOUND"
+
+    return {
+        "doctor_name": result[0],
+        "specialization": result[1],
+        "available_days": result[2]
+    }
+
+
+
 def get_doctor_availability(doctor_id: str):
 
     conn = get_connection()
@@ -54,7 +95,7 @@ def get_doctor_availability(doctor_id: str):
 
     return row[0]  
 
-@function_tool
+
 def is_slot_taken(doctor_id: str, date: str, time: str):
 
     conn = get_connection()
@@ -73,8 +114,7 @@ def is_slot_taken(doctor_id: str, date: str, time: str):
     return result is not None
 
 
-@function_tool
-def suggest_available_slots(doctor_id: str, date: str):
+def suggest_available_slots(doctor_name: str, date: str):
     """Suggests free slots for a doctor on a specific date (YYYY-MM-DD)."""
 
     all_slots = ["09:00", "09:30", "10:00", "10:30", "11:00", "14:00", "14:30", "15:00"]
@@ -84,7 +124,8 @@ def suggest_available_slots(doctor_id: str, date: str):
     except ValueError:
         return "Invalid date format. Use YYYY-MM-DD."
 
-    
+    doctor_id=get_doctor_id(doctor_name)
+
     available_days = get_doctor_availability(doctor_id)
 
     if available_days == "DOCTOR_NOT_FOUND":
@@ -107,10 +148,10 @@ def suggest_available_slots(doctor_id: str, date: str):
     return f"Available slots on {date}: {', '.join(free_slots)}"
 
 
-@function_tool
-def book_appointment(patient_number: str, doctor_id: str, date: str, time: str):
+def book_appointment(patient_number: str, doctor_name: str, date: str, time: str):
     """Books an appointment. 'time' should be HH:MM format."""
     
+    doctor_id=get_doctor_id(doctor_name)
     # --- MISSING LOGIC 2: Double-Check (Race Condition) ---
     # Always check if the slot is still taken right before booking
     if is_slot_taken(doctor_id, date, time):
@@ -126,22 +167,24 @@ def book_appointment(patient_number: str, doctor_id: str, date: str, time: str):
     iso_end = end_dt.isoformat()
 
     # 1. Save to DB
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO appointments (patient_number, doctor_id, appointment_date, appointment_time)
-        VALUES (?, ?, ?, ?)
-    """, (patient_number, doctor_id, date, time))
-    conn.commit()
-    conn.close()
 
     # 2. Create Google Calendar event
     # Ensure your create_event function handles the 'Z' (UTC) or offset
-    event_link = create_event(
-        summary=f"Dr. {doctor_id} / Patient {patient_number}",
+    event = create_event(
+        summary=f"Dr. {doctor_name} / Patient Number: {patient_number}",
         description=f"Automated booking for patient {patient_number}",
         start_time=iso_start,
         end_time=iso_end
     )
+    event_id = event["event_id"]
 
-    return f"Success! Appointment confirmed for {date} at {time}."
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO appointments (patient_number, doctor_id, appointment_date, appointment_time, event_id)
+        VALUES (?, ?, ?, ?,?)
+    """, (patient_number, doctor_id, date,time,event_id))
+    conn.commit()
+    conn.close()
+
+    return f"Success! Appointment confirmed for {date} at {time}. link={event["htmlLink"]}"

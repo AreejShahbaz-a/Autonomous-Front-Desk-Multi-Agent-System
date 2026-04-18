@@ -40,6 +40,7 @@ def create_tables():
             appointment_date DATE NOT NULL,
             appointment_time TIME NOT NULL,
             status TEXT DEFAULT 'scheduled',
+            event_id TEXT
             FOREIGN KEY (patient_number) REFERENCES patients(patient_number),
             FOREIGN KEY (doctor_id) REFERENCES doctors(doctor_id)
         )

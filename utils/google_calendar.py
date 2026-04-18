@@ -23,17 +23,20 @@ def create_event(summary, description, start_time, end_time):
         'description': description,
         'start': {
             'dateTime': start_time,
-            'timeZone': 'Asia/Karachi',
+            'timeZone': 'UTC',
         },
         'end': {
             'dateTime': end_time,
-            'timeZone': 'Asia/Karachi',
+            'timeZone': 'UTC',
         },
     }
 
     event = service.events().insert(
-        calendarId='primary',
+        calendarId='72d30452035a9c7c731328a42530e4272b088a79d8a59c3072006c0f86241385@group.calendar.google.com',
         body=event
     ).execute()
 
-    return event.get('htmlLink')
+    return {
+        "event_id": event.get("id"),
+        "htmlLink": event.get("htmlLink")
+    }

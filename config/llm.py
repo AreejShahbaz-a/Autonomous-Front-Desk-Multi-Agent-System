@@ -1,15 +1,15 @@
 from openai import AsyncOpenAI
 from agents import OpenAIChatCompletionsModel
-from config.settings import OPENROUTER_API_KEY
+from config.settings import OPENAI_API_KEY
 
 
 def get_model():
     client = AsyncOpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=OPENROUTER_API_KEY
+        base_url="https://api.openai.com/v1",
+        api_key=OPENAI_API_KEY
     )
 
     return OpenAIChatCompletionsModel(
-        model="openai/gpt-oss-120b:free",
+        model="gpt-5.4-nano",
         openai_client=client
     )

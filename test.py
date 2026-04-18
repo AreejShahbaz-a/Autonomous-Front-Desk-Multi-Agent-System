@@ -4,6 +4,7 @@ from agents.run import Runner
 from ai_agents.patient_agent import patient_agent
 from ai_agents.information_agent import information_agent
 from ai_agents.appointment_agent import appointment_agent
+from ai_agents.orchestrator_agent import orchestrator_agent
 from memory.session import get_session
 
 
@@ -18,7 +19,7 @@ async def main():
             break
 
         result = await Runner.run(
-            appointment_agent,
+            orchestrator_agent,
             user_input,
             session=session
         )

@@ -4,7 +4,8 @@ from config.llm import get_model
 from tools.patient_tools import (
     create_patient,
     check_patient_existence,
-    get_patient_info
+    get_patient_info,
+    get_patient_appointments
 )
 
 from tools.validation_tools import (
@@ -124,7 +125,8 @@ tools = [
     get_patient_info,
     validate_cnic,
     validate_email,
-    validate_phone
+    validate_phone,
+    get_patient_appointments
 ]
 
 # AGENT

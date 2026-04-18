@@ -1,5 +1,5 @@
 from agents import function_tool
-from utils.google_calendar import create_event
+from utils.google_calendar import create_event, delete_event
 import datetime
 import sqlite3
 from db.database import get_connection
@@ -188,3 +188,52 @@ def book_appointment(patient_number: str, doctor_name: str, date: str, time: str
     conn.close()
 
     return f"Success! Appointment confirmed for {date} at {time}. link={event["htmlLink"]}"
+
+
+def cancel_appointment_by_id(appointment_id: int):
+    """
+    Cancels appointment using appointment_id.
+    Also deletes event from Google Calendar.
+    """
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # 1. Get event_id + status
+    cursor.execute("""
+        SELECT event_id, status
+        FROM appointments
+        WHERE appointment_id = ?
+    """, (appointment_id,))
+
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return "Appointment not found."
+
+    event_id, status = row
+
+    if status == "cancelled":
+        conn.close()
+        return "Appointment already cancelled."
+
+    # 2. Update DB
+    cursor.execute("""
+        UPDATE appointments
+        SET status = 'cancelled'
+        WHERE appointment_id = ?
+    """, (appointment_id,))
+
+    conn.commit()
+    conn.close()
+
+    # 3. Call Google delete function
+    if event_id:
+        success = delete_event(event_id)
+
+        if not success:
+            return "Appointment cancelled, but failed to delete from Google Calendar."
+
+    return "Appointment cancelled successfully."
+

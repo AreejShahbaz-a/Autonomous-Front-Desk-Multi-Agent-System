@@ -7,10 +7,9 @@ from tools.appointment_tools import (
     is_slot_taken,
     suggest_available_slots,
     book_appointment,
-    get_doctor_information,
     parse_appointment_datetime
 )
-from tools.patient_tools import check_patient_existence
+from tools.patient_tools import check_patient_existence, get_patient_appointments
 
 # MODEL SETUP
 model = get_model()
@@ -142,7 +141,8 @@ tools = [
     is_slot_taken,
     suggest_available_slots,
     book_appointment,
-    parse_appointment_datetime
+    parse_appointment_datetime,
+    get_patient_appointments
 ]
 
 appointment_agent = Agent(

@@ -3,8 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from db.models import create_tables
-import uuid
-from datetime import datetime, timezone
+from api.routes import chat
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,21 +23,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class ChatRequest(BaseModel):
-    message: str
+app.include_router(chat.router, prefix="/api", tags=["chat"])
 
 @app.get("/")
 def home():
     return {"message": "Backend is working!"}
-
-@app.post("/api/chat")
-def chat(request: ChatRequest):
-    return {
-        "id": str(uuid.uuid4()),
-        "role": "agent",
-        "content": f"You said: {request.message}",
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
 
 if __name__ == "__main__":
     import uvicorn

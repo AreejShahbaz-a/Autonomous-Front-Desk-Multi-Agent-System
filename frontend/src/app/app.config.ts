@@ -1,23 +1,11 @@
-import {
-  provideHttpClient,
-  withFetch,
-  withInterceptors,
-} from '@angular/common/http';
-import {
-  ApplicationConfig,
-  provideBrowserGlobalErrorListeners,
-} from '@angular/core';
-import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { provideFileRouter, requestContextInterceptor } from '@analogjs/router';
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideAnimations } from '@angular/platform-browser/animations';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideFileRouter(),
-    provideHttpClient(
-      withFetch(),
-      withInterceptors([requestContextInterceptor])
-    ),
-    provideClientHydration(withEventReplay()),
-  ],
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideHttpClient(withFetch()),
+    provideAnimations()
+  ]
 };

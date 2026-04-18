@@ -5,7 +5,7 @@ from db.database import get_connection
 
 
 # CREATE PATIENT
-
+@function_tool
 def create_patient(patient_name: str, contact: str, cnic: str, address: str, email: str, gender: str):
     """
     Create a new patient in the database after validation.
@@ -56,7 +56,7 @@ def create_patient(patient_name: str, contact: str, cnic: str, address: str, ema
 
 
 # CHECK PATIENT EXISTENCE
-
+@function_tool
 def check_patient_existence(patient_number: str):
     """
     Check if patient exists using patient_number.
@@ -87,7 +87,7 @@ def check_patient_existence(patient_number: str):
 
 
 # GET PATIENT INFO
-
+@function_tool
 def get_patient_info(patient_number: str):
     """
     Fetch full patient details.
@@ -124,7 +124,7 @@ def get_patient_info(patient_number: str):
         }
     }
 
-
+@function_tool
 def get_patient_appointments(patient_number: str):
     """
     Returns all active appointments for a patient.

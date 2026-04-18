@@ -28,6 +28,7 @@ def parse_appointment_datetime(user_input: str):
         "appointment_time": parsed.strftime("%H:%M")
     }
 
+
 def get_doctor_id(doctor_name: str):
     """
     Returns doctor_id for a given doctor_name.
@@ -75,7 +76,6 @@ def get_doctor_information(doctor_name: str):
     }
 
 
-
 def get_doctor_availability(doctor_id: str):
 
     conn = get_connection()
@@ -113,7 +113,7 @@ def is_slot_taken(doctor_id: str, date: str, time: str):
 
     return result is not None
 
-
+@function_tool
 def suggest_available_slots(doctor_name: str, date: str):
     """Suggests free slots for a doctor on a specific date (YYYY-MM-DD)."""
 
@@ -147,7 +147,7 @@ def suggest_available_slots(doctor_name: str, date: str):
 
     return f"Available slots on {date}: {', '.join(free_slots)}"
 
-
+@function_tool
 def book_appointment(patient_number: str, doctor_name: str, date: str, time: str):
     """Books an appointment. 'time' should be HH:MM format."""
     
@@ -171,7 +171,7 @@ def book_appointment(patient_number: str, doctor_name: str, date: str, time: str
     # 2. Create Google Calendar event
     # Ensure your create_event function handles the 'Z' (UTC) or offset
     event = create_event(
-        summary=f"Dr. {doctor_name} / Patient Number: {patient_number}",
+        summary=f"{doctor_name} / Patient Number: {patient_number}",
         description=f"Automated booking for patient {patient_number}",
         start_time=iso_start,
         end_time=iso_end
@@ -189,7 +189,7 @@ def book_appointment(patient_number: str, doctor_name: str, date: str, time: str
 
     return f"Success! Appointment confirmed for {date} at {time}. link={event["htmlLink"]}"
 
-
+@function_tool
 def cancel_appointment_by_id(appointment_id: int):
     """
     Cancels appointment using appointment_id.
@@ -237,3 +237,86 @@ def cancel_appointment_by_id(appointment_id: int):
 
     return "Appointment cancelled successfully."
 
+@function_tool
+def reschedule_appointment(appointment_id: int, new_date: str, new_time: str):
+    """
+    Reschedules an existing appointment:
+    - Checks if appointment exists
+    - Checks if new slot is available
+    - Deletes old Google Calendar event
+    - Creates new event
+    - Updates DB
+    """
+
+    import datetime
+    from datetime import timedelta
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # 1. Get existing appointment
+    cursor.execute("""
+        SELECT patient_number, doctor_id, appointment_date, appointment_time, event_id, status
+        FROM appointments
+        WHERE appointment_id = ?
+    """, (appointment_id,))
+    
+    appointment = cursor.fetchone()
+
+    if not appointment:
+        conn.close()
+        return "Appointment not found."
+
+    patient_number, doctor_id, old_date, old_time, old_event_id, status = appointment
+
+    if status == "cancelled":
+        conn.close()
+        return "Cannot reschedule a cancelled appointment."
+
+    # 2. Check if new slot is available
+    if is_slot_taken(doctor_id, new_date, new_time):
+        conn.close()
+        return "Selected new slot is already taken. Please choose another."
+
+    # 3. Delete old Google Calendar event
+    if old_event_id:
+        delete_event(old_event_id)
+
+    # 4. Create new event
+    start_dt = datetime.datetime.strptime(f"{new_date} {new_time}", "%Y-%m-%d %H:%M")
+    end_dt = start_dt + timedelta(minutes=30)
+
+    iso_start = start_dt.isoformat()
+    iso_end = end_dt.isoformat()
+
+    cursor.execute("""
+        SELECT doctor_name
+        FROM doctors
+        WHERE doctor_id = ?
+    """, (doctor_id,))
+
+    row = cursor.fetchone()
+    doctor_name = row[0]
+
+    event = create_event(
+        summary=f"{doctor_name} / Patient Number: {patient_number}",
+        description="Rescheduled appointment",
+        start_time=iso_start,
+        end_time=iso_end
+    )
+
+    event_id = event["event_id"]
+
+    # 5. Update DB
+    cursor.execute("""
+        UPDATE appointments
+        SET appointment_date = ?, 
+            appointment_time = ?, 
+            event_id = ?
+        WHERE appointment_id = ?
+    """, (new_date, new_time, event_id, appointment_id))
+
+    conn.commit()
+    conn.close()
+
+    return f"Appointment rescheduled to {new_date} at {new_time}.link={event["htmlLink"]}"

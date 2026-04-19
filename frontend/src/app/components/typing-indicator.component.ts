@@ -8,14 +8,16 @@ import { faRobot } from '@fortawesome/free-solid-svg-icons';
   standalone: true,
   imports: [CommonModule, FontAwesomeModule],
   template: `
-    <div class="flex items-center gap-3 text-slate-500 dark:text-slate-400 p-2">
-      <div class="w-8 h-8 rounded-full bg-cyan-100 dark:bg-cyan-900 flex items-center justify-center">
-         <fa-icon [icon]="faRobot" class="text-cyan-600 dark:text-cyan-400 text-sm"></fa-icon>
-      </div>
-      <div class="flex space-x-1.5 self-end mb-2">
-        <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-        <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-        <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+    <div class="flex w-full justify-center py-4 bg-slate-50 dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800/50">
+      <div class="flex w-full max-w-3xl gap-5 px-4 m-auto">
+        <div class="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-teal-600 dark:bg-teal-500 shadow-sm border border-teal-500 dark:border-teal-400 mt-0.5">
+           <fa-icon [icon]="faRobot" class="text-white text-sm"></fa-icon>
+        </div>
+        <div class="flex space-x-1.5 items-center pt-1.5">
+          <div class="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+          <div class="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+          <div class="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+        </div>
       </div>
     </div>
   `

@@ -11,7 +11,7 @@ import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
   template: `
     <div class="p-4 bg-transparent border-t-0 fixed bottom-0 left-0 right-0 w-full md:pl-64 bg-linear-to-t from-white via-white dark:from-[#0B1120] dark:via-[#0B1120] to-transparent pointer-events-none">
       <div class="pointer-events-auto">
-        <div class="max-w-3xl mx-auto flex gap-2 mb-3 overflow-x-auto no-scrollbar px-4">
+        <div *ngIf="suggestions.length > 0" class="max-w-3xl mx-auto flex gap-2 mb-3 overflow-x-auto no-scrollbar px-4">
           <button *ngFor="let chip of suggestions" (click)="send(chip)" 
             class="shrink-0 px-4 py-1.5 text-xs font-semibold rounded-full bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-300 hover:bg-teal-50 hover:text-teal-800 dark:hover:bg-slate-700 dark:hover:text-teal-200 transition-all duration-300 ease-in-out border border-teal-100 dark:border-slate-700 shadow-sm">
             {{ chip }}
@@ -41,7 +41,7 @@ import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 })
 export class ChatInputComponent {
   message = '';
-  suggestions = ['Book an appointment', 'Symptom checker', 'Check lab results', 'Prescription refill'];
+  suggestions = ['Book an appointment', 'Symptom checker', 'Add patient', 'General inquiry'];
   @Output() onSubmit = new EventEmitter<string>();
   faPaperPlane = faPaperPlane;
 
@@ -49,6 +49,7 @@ export class ChatInputComponent {
     if (text.trim()) {
       this.onSubmit.emit(text.trim());
       this.message = '';
+      this.suggestions = [];
     }
   }
 }

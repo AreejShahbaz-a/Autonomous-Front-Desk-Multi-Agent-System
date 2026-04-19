@@ -80,7 +80,10 @@ export class ChatService {
 
     this.isTypingSubject.next(true);
 
-    this.http.post<Message>('http://127.0.0.1:8000/api/chat', { message: content }).pipe(
+    this.http.post<Message>('http://127.0.0.1:8000/api/chat', { 
+      message: content,
+      session_id: activeId
+    }).pipe(
       catchError((error) => {
         console.error('API Error', error);
         return [{ id: Date.now().toString(), role: 'agent', content: 'Connection error.', timestamp: new Date() }];

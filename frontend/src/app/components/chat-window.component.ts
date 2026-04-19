@@ -1,4 +1,4 @@
-import { Component, Input, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, Input, ViewChild, ElementRef, AfterViewChecked, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChatMessageComponent } from './chat-message.component';
 import { TypingIndicatorComponent } from './typing-indicator.component';
@@ -10,6 +10,7 @@ import { faStethoscope } from '@fortawesome/free-solid-svg-icons';
   selector: 'app-chat-window',
   standalone: true,
   imports: [CommonModule, ChatMessageComponent, TypingIndicatorComponent, FontAwesomeModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div #scrollContainer class="flex-1 overflow-y-auto w-full pb-32">
       <div class="w-full flex justify-center py-10 mb-2 mt-4">
@@ -21,7 +22,7 @@ import { faStethoscope } from '@fortawesome/free-solid-svg-icons';
           <p class="text-slate-500 dark:text-slate-400 mt-2 text-sm">Your intelligent healthcare assistant</p>
         </div>
       </div>
-      <app-chat-message *ngFor="let msg of messages" [message]="msg"></app-chat-message>
+      <app-chat-message *ngFor="let msg of messages; trackBy: trackByMessageId" [message]="msg"></app-chat-message>
       <app-typing-indicator *ngIf="isTyping"></app-typing-indicator>
     </div>
   `
@@ -41,5 +42,9 @@ export class ChatWindowComponent implements AfterViewChecked {
     try {
       this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
     } catch(err) { }
+  }
+
+  trackByMessageId(index: number, message: Message): string {
+    return message.id;
   }
 }

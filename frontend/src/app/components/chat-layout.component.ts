@@ -5,7 +5,7 @@ import { ChatWindowComponent } from './chat-window.component';
 import { ChatInputComponent } from './chat-input.component';
 import { ChatService } from '../services/chat.service';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faMoon, faSun, faPlus, faBars, faMessage, faStethoscope } from '@fortawesome/free-solid-svg-icons';
+import { faMoon, faSun, faPlus, faBars, faMessage, faStethoscope, faCog } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-chat-layout',
@@ -96,10 +96,21 @@ import { faMoon, faSun, faPlus, faBars, faMessage, faStethoscope } from '@fortaw
             </h1>
           </div>
           
-          <button (click)="toggleTheme()" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tooltip-trigger relative group" aria-label="Toggle Theme">
-            <fa-icon [icon]="isDark ? faSun : faMoon" class="text-lg"></fa-icon>
-            <span class="absolute -bottom-8 right-0 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden md:block pointer-events-none">Toggle theme</span>
-          </button>
+          <div class="flex items-center gap-3">
+            <button (click)="toggleTheme()" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tooltip-trigger relative group" aria-label="Toggle Theme">
+              <fa-icon [icon]="isDark ? faSun : faMoon" class="text-lg"></fa-icon>
+              <span class="absolute -bottom-8 right-0 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden md:block pointer-events-none">Toggle theme</span>
+            </button>
+            <div class="relative">
+              <button (click)="toggleSettings()" class="p-2.5 rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors tooltip-trigger group" aria-label="Settings">
+                <fa-icon [icon]="faCog" class="text-lg"></fa-icon>
+                <span class="absolute -bottom-8 right-0 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden md:block pointer-events-none">Settings</span>
+              </button>
+              <div *ngIf="isSettingsOpen" class="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/50 rounded-xl shadow-lg py-1 z-50">
+                <a href="/admin/login" class="block px-4 py-2.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-teal-600 dark:hover:text-teal-400 transition-colors font-medium">Login as Admin</a>
+              </div>
+            </div>
+          </div>
         </header>
 
         <!-- Scrollable Window -->

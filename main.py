@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from db.models import create_tables
-from api.routes import chat
+from api.routes import chat, admin
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(chat.router, prefix="/api", tags=["chat"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 @app.get("/")
 def home():

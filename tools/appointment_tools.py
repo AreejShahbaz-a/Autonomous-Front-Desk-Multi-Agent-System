@@ -189,6 +189,7 @@ def book_appointment(patient_number: str, doctor_name: str, date: str, time: str
         INSERT INTO appointments (patient_number, doctor_id, appointment_date, appointment_time, event_id)
         VALUES (?, ?, ?, ?,?)
     """, (patient_number, doctor_id, date,time,event_id))
+    appointment_id = cursor.lastrowid
     conn.commit()
     try:
         cursor.execute("SELECT email, patient_name FROM patients WHERE patient_number = ?", (patient_number,))
@@ -204,6 +205,7 @@ def book_appointment(patient_number: str, doctor_name: str, date: str, time: str
                 "doctor_name": doctor_name,
                 "date": date,
                 "time": time,
+                "appointment_id": appointment_id,
                 "plain": f"Your appointment is confirmed for {date} at {time}."
             }
             send_templated_email(patient_email, subject, "appointment_confirmed.html", context)

@@ -44,7 +44,8 @@ def render_template(template_name: str, **context) -> str:
     content = tpl_path.read_text(encoding="utf-8")
     try:
         return content.format(**context)
-    except Exception:
+    except Exception as e:
+        print(f"Error rendering template: {e}")
         return content
 
 

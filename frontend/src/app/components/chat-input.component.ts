@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, inject, OnInit } from '@angular/core';
+import { ChatService } from '../services/chat.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -23,7 +24,7 @@ import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
             type="text" 
             [(ngModel)]="message" 
             (keyup.enter)="send(message)"
-            placeholder="Ask MediCare AI a health related question..." 
+            placeholder="Type a message or choose an action (e.g. Register patient)" 
             class="w-full pl-5 pr-14 py-4 bg-transparent border-none outline-none focus:ring-0 transition-all duration-300 text-slate-800 dark:text-slate-100 placeholder-slate-400 font-medium" />
           <button 
             (click)="send(message)"
@@ -41,15 +42,35 @@ import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 })
 export class ChatInputComponent {
   message = '';
-  suggestions = ['Book an appointment', 'Symptom checker', 'Add patient', 'General inquiry'];
+  // Persistent session-level action chips shown at start of each session
+  suggestions = ['Register patient', 'Book an appointment', 'Show appointments', 'General inquiry'];
+  // Tracks whether the user has sent their first message in this session
+  firstMessageSent = false;
+  private chatService = inject(ChatService);
+  private initialSuggestions = ['Register patient', 'Book an appointment', 'Show appointments', 'General inquiry'];
   @Output() onSubmit = new EventEmitter<string>();
   faPaperPlane = faPaperPlane;
+
+  constructor() {
+    // Watch for session message changes to reset suggestion chips at session start
+    this.chatService.messages$.subscribe((msgs) => {
+      if (!msgs || msgs.length === 0) {
+        // New/empty session: show initial chips and mark as not-sent
+        this.firstMessageSent = false;
+        this.suggestions = [...this.initialSuggestions];
+      }
+    });
+  }
 
   send(text: string) {
     if (text.trim()) {
       this.onSubmit.emit(text.trim());
       this.message = '';
-      this.suggestions = [];
+      // Clear suggestion chips only after the user's first message
+      if (!this.firstMessageSent) {
+        this.firstMessageSent = true;
+        this.suggestions = [];
+      }
     }
   }
 }

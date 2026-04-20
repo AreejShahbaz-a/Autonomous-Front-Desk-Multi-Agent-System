@@ -4,6 +4,7 @@ import datetime
 import sqlite3
 from db.database import get_connection
 from datetime import timedelta
+from dateparser.date import DateDataParser
 import dateparser
 
 @function_tool
@@ -14,11 +15,14 @@ def get_current_datetime():
 
 @function_tool
 def parse_appointment_datetime(user_input: str):
-    """
-    Converts natural language date/time into structured format.
-    """
 
-    parsed = dateparser.parse(user_input, settings={"PREFER_DATES_FROM": "future"})
+    parsed = dateparser.parse(
+        user_input,
+        settings={
+            "PREFER_DATES_FROM": "future",
+            "RELATIVE_BASE": datetime.datetime.now()
+        }
+    )
 
     if not parsed:
         return "INVALID"
@@ -187,7 +191,7 @@ def book_appointment(patient_number: str, doctor_name: str, date: str, time: str
     conn.commit()
     conn.close()
 
-    return f"Success! Appointment confirmed for {date} at {time}. link={event["htmlLink"]}"
+    return f"Success! Appointment confirmed for {date} at {time}."
 
 @function_tool
 def cancel_appointment_by_id(appointment_id: int):
@@ -319,4 +323,5 @@ def reschedule_appointment(appointment_id: int, new_date: str, new_time: str):
     conn.commit()
     conn.close()
 
-    return f"Appointment rescheduled to {new_date} at {new_time}.link={event["htmlLink"]}"
+    
+    return f"Appointment rescheduled to {new_date} at {new_time}."

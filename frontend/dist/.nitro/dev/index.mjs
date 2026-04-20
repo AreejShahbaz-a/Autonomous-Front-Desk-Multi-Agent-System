@@ -1,32 +1,31 @@
 import process from 'node:process';globalThis._importMeta_={url:import.meta.url,env:process.env};import { tmpdir } from 'node:os';
-import destr from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/destr/dist/index.mjs';
-import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, sendRedirect, proxyRequest, getRequestURL, getRequestHeader, getResponseHeader, getRequestHeaders, setResponseHeaders, setResponseStatus, send, removeResponseHeader, createError, appendResponseHeader, setResponseHeader, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getRouterParam, readBody, getQuery as getQuery$1 } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/h3/dist/index.mjs';
-import { createHooks } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/hookable/dist/index.mjs';
-import { createFetch, Headers as Headers$1 } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/ofetch/dist/node.mjs';
-import { fetchNodeRequestHandler, callNodeRequestHandler } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/node-mock-http/dist/index.mjs';
-import { parseURL, withoutBase, joinURL, getQuery, withQuery, decodePath, withLeadingSlash, withoutTrailingSlash } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/ufo/dist/index.mjs';
-import { createStorage, prefixStorage } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/unstorage/dist/index.mjs';
-import unstorage_47drivers_47fs from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/unstorage/drivers/fs.mjs';
-import { digest } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/ohash/dist/index.mjs';
-import { klona } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/klona/dist/index.mjs';
-import defu, { defuFn } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/defu/dist/defu.mjs';
-import { snakeCase } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/scule/dist/index.mjs';
-import { getContext } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/unctx/dist/index.mjs';
-import { toRouteMatcher, createRouter } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/radix3/dist/index.mjs';
-import { readFile } from 'node:fs/promises';
-import { resolve, dirname, join } from 'node:path';
-import consola from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/consola/dist/index.mjs';
-import { ErrorParser } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/youch-core/build/index.js';
-import { Youch } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/youch/build/index.js';
-import { SourceMapConsumer } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/source-map/source-map.js';
-import { promises } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname as dirname$1, resolve as resolve$1 } from 'file:///home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/node_modules/pathe/dist/index.mjs';
 import { Server } from 'node:http';
+import { resolve, dirname, join } from 'node:path';
 import nodeCrypto from 'node:crypto';
 import { parentPort, threadId } from 'node:worker_threads';
+import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, sendRedirect, proxyRequest, getRequestURL, getRequestHeader, getResponseHeader, getRequestHeaders, setResponseHeaders, setResponseStatus, send, removeResponseHeader, createError, appendResponseHeader, setResponseHeader, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getRouterParam, readBody, getQuery as getQuery$1 } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/h3/dist/index.mjs';
+import destr from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/destr/dist/index.mjs';
+import { createHooks } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/hookable/dist/index.mjs';
+import { createFetch, Headers as Headers$1 } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/ofetch/dist/node.mjs';
+import { fetchNodeRequestHandler, callNodeRequestHandler } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/node-mock-http/dist/index.mjs';
+import { parseURL, withoutBase, joinURL, getQuery, withQuery, decodePath, withLeadingSlash, withoutTrailingSlash } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/ufo/dist/index.mjs';
+import { createStorage, prefixStorage } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/unstorage/dist/index.mjs';
+import unstorage_47drivers_47fs from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/unstorage/drivers/fs.mjs';
+import { digest } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/ohash/dist/index.mjs';
+import { klona } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/klona/dist/index.mjs';
+import defu, { defuFn } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/defu/dist/defu.mjs';
+import { snakeCase } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/scule/dist/index.mjs';
+import { toRouteMatcher, createRouter } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/radix3/dist/index.mjs';
+import { readFile } from 'node:fs/promises';
+import consola from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/consola/dist/index.mjs';
+import { ErrorParser } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/youch-core/build/index.js';
+import { Youch } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/youch/build/index.js';
+import { SourceMapConsumer } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/source-map/source-map.js';
+import { promises } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname as dirname$1, resolve as resolve$1 } from 'file://D:/Uni/FYP/code/frontdesk_project/frontend/node_modules/pathe/dist/index.mjs';
 
-const serverAssets = [{"baseName":"server","dir":"/home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/src/server/assets"}];
+const serverAssets = [{"baseName":"server","dir":"D:/Uni/FYP/code/frontdesk_project/frontend/src/server/assets"}];
 
 const assets$1 = createStorage();
 
@@ -38,11 +37,11 @@ const storage = createStorage({});
 
 storage.mount('/assets', assets$1);
 
-storage.mount('root', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"/home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend"}));
-storage.mount('src', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"/home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/src/server"}));
-storage.mount('build', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"/home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/dist/.nitro"}));
-storage.mount('cache', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"/home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/dist/.nitro/cache"}));
-storage.mount('data', unstorage_47drivers_47fs({"driver":"fs","base":"/home/mus/Documents/Autonomous-Front-Desk-Multi-Agent-System/frontend/.data/kv"}));
+storage.mount('root', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"D:/Uni/FYP/code/frontdesk_project/frontend"}));
+storage.mount('src', unstorage_47drivers_47fs({"driver":"fs","readOnly":true,"base":"D:/Uni/FYP/code/frontdesk_project/frontend/src/server"}));
+storage.mount('build', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"D:/Uni/FYP/code/frontdesk_project/frontend/dist/.nitro"}));
+storage.mount('cache', unstorage_47drivers_47fs({"driver":"fs","readOnly":false,"base":"D:/Uni/FYP/code/frontdesk_project/frontend/dist/.nitro/cache"}));
+storage.mount('data', unstorage_47drivers_47fs({"driver":"fs","base":"D:/Uni/FYP/code/frontdesk_project/frontend/.data/kv"}));
 
 function useStorage(base = "") {
   return base ? prefixStorage(storage, base) : storage;
@@ -657,11 +656,6 @@ new Proxy(/* @__PURE__ */ Object.create(null), {
   }
 });
 
-getContext("nitro-app", {
-  asyncContext: undefined,
-  AsyncLocalStorage: void 0
-});
-
 const config = useRuntimeConfig();
 const _routeRulesMatcher = toRouteMatcher(
   createRouter({ routes: config.nitro.routeRules })
@@ -933,7 +927,7 @@ function getAsset (id) {
 
 const METHODS = /* @__PURE__ */ new Set(["HEAD", "GET"]);
 const EncodingMap = { gzip: ".gz", br: ".br" };
-const _9eslIN = eventHandler((event) => {
+const _cf4WJu = eventHandler((event) => {
   if (event.method && !METHODS.has(event.method)) {
     return;
   }
@@ -1058,7 +1052,7 @@ const _mhrXuA = eventHandler(async (event) => {
 });
 
 const handlers = [
-  { route: '', handler: _9eslIN, lazy: false, middleware: true, method: undefined },
+  { route: '', handler: _cf4WJu, lazy: false, middleware: true, method: undefined },
   { route: '', handler: _mhrXuA, lazy: false, middleware: true, method: undefined }
 ];
 

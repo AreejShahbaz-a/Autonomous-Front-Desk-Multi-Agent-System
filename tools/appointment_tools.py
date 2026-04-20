@@ -6,6 +6,7 @@ from db.database import get_connection
 from datetime import timedelta
 from dateparser.date import DateDataParser
 import dateparser
+from utils.email import send_email
 
 @function_tool
 def get_current_datetime():
@@ -189,6 +190,26 @@ def book_appointment(patient_number: str, doctor_name: str, date: str, time: str
         VALUES (?, ?, ?, ?,?)
     """, (patient_number, doctor_id, date,time,event_id))
     conn.commit()
+    try:
+        cursor.execute("SELECT email, patient_name FROM patients WHERE patient_number = ?", (patient_number,))
+        row = cursor.fetchone()
+        if row and row[0]:
+            patient_email = row[0]
+            patient_name = row[1] or ""
+            subject = "Appointment Confirmed"
+            from utils.email import send_templated_email
+            context = {
+                "patient_name": patient_name,
+                "patient_number": patient_number,
+                "doctor_name": doctor_name,
+                "date": date,
+                "time": time,
+                "plain": f"Your appointment is confirmed for {date} at {time}."
+            }
+            send_templated_email(patient_email, subject, "appointment_confirmed.html", context)
+    except Exception:
+        pass
+
     conn.close()
 
     return f"Success! Appointment confirmed for {date} at {time}."
@@ -203,9 +224,9 @@ def cancel_appointment_by_id(appointment_id: int):
     conn = get_connection()
     cursor = conn.cursor()
 
-    # 1. Get event_id + status
+    # 1. Get event_id + status + patient_number
     cursor.execute("""
-        SELECT event_id, status
+        SELECT event_id, status, patient_number
         FROM appointments
         WHERE appointment_id = ?
     """, (appointment_id,))
@@ -216,7 +237,7 @@ def cancel_appointment_by_id(appointment_id: int):
         conn.close()
         return "Appointment not found."
 
-    event_id, status = row
+    event_id, status, patient_number = row
 
     if status == "cancelled":
         conn.close()
@@ -230,6 +251,25 @@ def cancel_appointment_by_id(appointment_id: int):
     """, (appointment_id,))
 
     conn.commit()
+    # Try to get patient email and notify
+    try:
+        cursor.execute("SELECT email, patient_name FROM patients WHERE patient_number = ?", (patient_number,))
+        prow = cursor.fetchone()
+        if prow and prow[0]:
+            patient_email = prow[0]
+            patient_name = prow[1] or ""
+            subject = "Appointment Cancelled"
+            from utils.email import send_templated_email
+            context = {
+                "patient_name": patient_name,
+                "patient_number": patient_number,
+                "appointment_id": appointment_id,
+                "plain": f"Your appointment (ID: {appointment_id}) has been cancelled."
+            }
+            send_templated_email(patient_email, subject, "appointment_cancelled.html", context)
+    except Exception:
+        pass
+
     conn.close()
 
     # 3. Call Google delete function
@@ -321,7 +361,26 @@ def reschedule_appointment(appointment_id: int, new_date: str, new_time: str):
     """, (new_date, new_time, event_id, appointment_id))
 
     conn.commit()
+    # Notify patient about reschedule (best-effort)
+    try:
+        from utils.email import send_templated_email
+        cursor.execute("SELECT email, patient_name FROM patients WHERE patient_number = ?", (patient_number,))
+        prow = cursor.fetchone()
+        if prow and prow[0]:
+            patient_email = prow[0]
+            patient_name = prow[1] or ""
+            subject = "Appointment Rescheduled"
+            context = {
+                "patient_name": patient_name,
+                "new_date": new_date,
+                "new_time": new_time,
+                "appointment_id": appointment_id,
+                "plain": f"Your appointment has been rescheduled to {new_date} at {new_time}."
+            }
+            send_templated_email(patient_email, subject, "appointment_rescheduled.html", context)
+    except Exception:
+        pass
+
     conn.close()
 
-    
     return f"Appointment rescheduled to {new_date} at {new_time}."

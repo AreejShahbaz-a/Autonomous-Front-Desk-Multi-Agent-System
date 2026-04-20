@@ -269,8 +269,8 @@ def cancel_appointment_by_id(appointment_id: int):
                 "plain": f"Your appointment (ID: {appointment_id}) has been cancelled."
             }
             send_templated_email(patient_email, subject, "appointment_cancelled.html", context)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Error sending cancellation email: {e}")
 
     conn.close()
 
@@ -380,8 +380,8 @@ def reschedule_appointment(appointment_id: int, new_date: str, new_time: str):
                 "plain": f"Your appointment has been rescheduled to {new_date} at {new_time}."
             }
             send_templated_email(patient_email, subject, "appointment_rescheduled.html", context)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Error sending reschedule email: {e}")
 
     conn.close()
 

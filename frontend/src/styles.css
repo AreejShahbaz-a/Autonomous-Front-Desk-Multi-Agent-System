@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-light: var(--color-blue-600);
+  --color-primary-dark: var(--color-blue-400);
+  --color-accent-light: var(--color-cyan-500);
+  --color-accent-dark: var(--color-cyan-400);
+  --color-bg-light: var(--color-slate-50);
+  --color-bg-dark: var(--color-slate-900);
+  --color-card-dark: var(--color-slate-800);
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 font-sans transition-colors duration-300 m-0 h-screen overflow-hidden;
+}
+
+html.dark body {
+  @apply bg-slate-900 text-slate-50;
+}

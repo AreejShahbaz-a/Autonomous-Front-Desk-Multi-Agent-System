@@ -23,7 +23,7 @@ import { marked } from 'marked';
           <div class="text-xs font-semibold uppercase tracking-[0.18em] mb-2 opacity-70" *ngIf="!isUser">
             MediCare AI
           </div>
-          <div class="text-sm sm:text-base leading-7 font-medium whitespace-pre-wrap break-words [&_p]:mb-3 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5 [&_li]:mb-1 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-bold [&_blockquote]:border-l-4 [&_blockquote]:border-teal-400 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono dark:[&_code]:bg-slate-900/60"
+          <div class="text-sm sm:text-base leading-7 font-medium break-words [&_p]:mb-3 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic [&_ul]:list-disc [&_ul]:ml-5 [&_ol]:list-decimal [&_ol]:ml-5 [&_li]:mb-1 [&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm [&_h1]:font-bold [&_h2]:font-bold [&_h3]:font-bold [&_blockquote]:border-l-4 [&_blockquote]:border-teal-400 [&_blockquote]:pl-3 [&_blockquote]:italic [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono dark:[&_code]:bg-slate-900/60"
                [innerHTML]="parsedContent">
           </div>
         </div>

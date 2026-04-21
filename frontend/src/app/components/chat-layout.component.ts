@@ -133,12 +133,18 @@ export class ChatLayoutComponent implements OnInit {
   chatService = inject(ChatService);
   isDark = true;
   isSidebarOpen = false;
+  isSettingsOpen = false;
   faMoon = faMoon;
   faSun = faSun;
   faPlus = faPlus;
   faBars = faBars;
   faMessage = faMessage;
   faStethoscope = faStethoscope;
+  faCog = faCog;
+
+  toggleSettings() {
+    this.isSettingsOpen = !this.isSettingsOpen;
+  }
 
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;

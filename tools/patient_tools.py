@@ -1,6 +1,7 @@
 import sqlite3
 import re
 from agents import function_tool
+from utils.email import send_email
 from db.database import get_connection
 
 
@@ -47,6 +48,19 @@ def create_patient(patient_name: str, contact: str, cnic: str, address: str, ema
 
     conn.commit()
     conn.close()
+
+    # Send welcome / account-created email (best-effort)
+    try:
+        subject = "Welcome — your patient account has been created"
+        context = {
+            "patient_name": patient_name,
+            "patient_number": patient_number,
+            "plain": f"Hello {patient_name}, Your patient number is {patient_number}."
+        }
+        from utils.email import send_templated_email
+        send_templated_email(email, subject, "welcome.html", context)
+    except Exception:
+        pass
 
     return {
         "status": "success",

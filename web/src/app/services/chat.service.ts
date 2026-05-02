@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Message } from '../models/message.model';
+import { API_BASE_URL } from '../config/api.config';
 
 export interface ChatSession {
   id: string;
@@ -97,7 +98,7 @@ export class ChatService {
 
     this.isTypingSubject.next(true);
 
-    this.http.post<Message>('http://127.0.0.1:8000/api/chat', { 
+    this.http.post<Message>(`${API_BASE_URL}/api/chat`, { 
       message: content,
       session_id: activeId
     }).pipe(

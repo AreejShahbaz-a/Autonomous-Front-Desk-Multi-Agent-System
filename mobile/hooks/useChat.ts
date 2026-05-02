@@ -56,7 +56,7 @@ export const useChat = () => {
       prev.map((s) => {
         if (s.id === activeSessionId) {
           let newTitle = s.title;
-          if (s.title === 'New Chat') {
+          if (s.messages.length === 0) {
             newTitle = text.substring(0, 30) + (text.length > 30 ? '...' : '');
           }
           return {

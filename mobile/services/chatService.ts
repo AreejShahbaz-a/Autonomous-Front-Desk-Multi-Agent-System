@@ -22,6 +22,13 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  updatedAt: Date;
+}
+
 export const generateSessionId = () => {
   return uuid.v4().toString();
 };

@@ -1,8 +1,14 @@
-from db.database import get_connection
+try:
+    from db.database import get_connection
+except ImportError:
+    from database import get_connection
+from db.models import create_tables
 import random
 
 
 def seed_data():
+     # Ensure tables exist before inserting data
+    create_tables()
     conn = get_connection()
     cursor = conn.cursor()
 

@@ -1,98 +1,68 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, FlatList, KeyboardAvoidingView, Platform, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Stack, router } from 'expo-router';
+import { useChat } from '@/hooks/useChat';
+import { ChatMessage } from '@/components/chat/ChatMessage';
+import { ChatInput } from '@/components/chat/ChatInput';
+import { TypingIndicator } from '@/components/chat/TypingIndicator';
+import { Stethoscope } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function ChatScreen() {
+  const { messages, isTyping, sendMessage } = useChat();
+  const flatListRef = useRef<FlatList>(null);
+  const { colorScheme } = useColorScheme();
 
-export default function HomeScreen() {
+  const isDark = colorScheme === 'dark';
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <SafeAreaView style={{ flex: 1 }} className="bg-slate-50 dark:bg-[#0B1120]">
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      contentContainerStyle={{ flex: 1 }}
+    >
+      <View className="flex-1 bg-slate-50 dark:bg-[#0B1120]">
+        
+        <View className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex-row items-center justify-center">
+          <Stethoscope size={24} color={isDark ? '#2dd4bf' : '#0d9488'} className="mr-2" />
+          <Text className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+            Medicare Assistant
+          </Text>
+        </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          className="flex-1 px-2 pt-4"
+          contentContainerStyle={{ paddingBottom: 20 }}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          ListEmptyComponent={
+            <View className="flex-1 items-center justify-center mt-20 px-4">
+              <View className="w-16 h-16 bg-teal-100 dark:bg-teal-900/30 rounded-full items-center justify-center mb-6">
+                <Stethoscope size={32} color={isDark ? '#2dd4bf' : '#0d9488'} />
+              </View>
+              <Text className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2 text-center">
+                How can I help you today?
+              </Text>
+              <Text className="text-slate-500 dark:text-slate-400 text-center max-w-sm">
+                I can assist you with booking appointments, checking symptoms, or general medical information.
+              </Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <ChatMessage message={item.message} isUser={item.isUser} />
+          )}
+          ListFooterComponent={isTyping ? <TypingIndicator /> : null}
+        />
+        
+        <ChatInput onSend={sendMessage} isTyping={isTyping} />
+      </View>
+    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});

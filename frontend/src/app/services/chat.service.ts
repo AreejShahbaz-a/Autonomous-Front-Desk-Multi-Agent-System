@@ -17,13 +17,11 @@ export interface ChatSession {
 export class ChatService {
   private http = inject(HttpClient);
   
-  private sessionsSubject = new BehaviorSubject<ChatSession[]>([
-    { id: '1', title: 'New Chat', messages: [], updatedAt: new Date() }
-  ]);
-  public sessions$ = this.sessionsSubject.asObservable();
+  private sessionsSubject: BehaviorSubject<ChatSession[]>;
+  public sessions$: Observable<ChatSession[]>;
 
-  private activeSessionIdSubject = new BehaviorSubject<string | null>('1');
-  public activeSessionId$ = this.activeSessionIdSubject.asObservable();
+  private activeSessionIdSubject: BehaviorSubject<string | null>;
+  public activeSessionId$: Observable<string | null>;
 
   private messagesSubject = new BehaviorSubject<Message[]>([]);
   public messages$ = this.messagesSubject.asObservable();
@@ -32,6 +30,15 @@ export class ChatService {
   public isTyping$ = this.isTypingSubject.asObservable();
 
   constructor() {
+    const initialId = this.generateId();
+    const initialSession: ChatSession = { id: initialId, title: 'New Chat', messages: [], updatedAt: new Date() };
+
+    this.sessionsSubject = new BehaviorSubject<ChatSession[]>([initialSession]);
+    this.sessions$ = this.sessionsSubject.asObservable();
+
+    this.activeSessionIdSubject = new BehaviorSubject<string | null>(initialId);
+    this.activeSessionId$ = this.activeSessionIdSubject.asObservable();
+
     this.activeSessionId$.subscribe(id => {
       const activeSession = this.sessionsSubject.value.find(s => s.id === id);
       this.messagesSubject.next(activeSession ? activeSession.messages : []);
@@ -40,7 +47,7 @@ export class ChatService {
 
   createNewSession() {
     const newSession: ChatSession = {
-      id: Date.now().toString(),
+      id: this.generateId(),
       title: 'New Chat',
       messages: [],
       updatedAt: new Date()
@@ -51,6 +58,16 @@ export class ChatService {
 
   setActiveSession(id: string) {
     this.activeSessionIdSubject.next(id);
+  }
+
+  private generateId(): string {
+    try {
+      if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+        // @ts-ignore
+        return crypto.randomUUID();
+      }
+    } catch (e) {}
+    return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   }
 
   sendMessage(content: string) {

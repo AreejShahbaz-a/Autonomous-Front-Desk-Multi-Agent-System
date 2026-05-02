@@ -4,6 +4,14 @@ from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from db.models import create_tables
 from api.routes import chat, admin
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -32,4 +40,4 @@ def home():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="192.168.100.3", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

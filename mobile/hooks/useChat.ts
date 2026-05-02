@@ -26,7 +26,7 @@ export const useChat = () => {
       const agentMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         session_id: sessionIdRef.current,
-        message: response.response || response.message || "No response received",
+        message: response.content || response.response || response.message || "No response received",
         isUser: false,
         timestamp: new Date(),
       };

@@ -1,8 +1,18 @@
 import axios from 'axios';
 import uuid from 'react-native-uuid';
+import Constants from 'expo-constants';
 
-// Use your backend host ip for emulator connecting to local server
-const API_URL = 'http://192.168.100.3:8000/api/chat';
+const getApiUrl = () => {
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    const host = hostUri.split(':')[0];
+    return `http://${host}:8000/api/chat`;
+  }
+
+  return 'http://192.168.100.3:8000/api/chat';
+};
+
+const API_URL = getApiUrl();
 
 export interface ChatMessage {
   id: string;

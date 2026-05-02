@@ -65,8 +65,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={session.id}
               onPress={() => onSelectSession(session.id)}
               className={`flex-row items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-all ${session.id === activeSessionId
-                  ? 'bg-slate-200 dark:bg-slate-800'
-                  : 'hover:bg-slate-100 dark:hover:bg-slate-900'
+                ? 'bg-slate-200 dark:bg-slate-800'
+                : 'hover:bg-slate-100 dark:hover:bg-slate-900'
                 }`}
             >
               <MessageSquare
@@ -76,8 +76,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Text
                 numberOfLines={1}
                 className={`flex-1 text-sm ${session.id === activeSessionId
-                    ? 'text-teal-700 dark:text-teal-300 font-medium'
-                    : 'text-slate-600 dark:text-slate-400'
+                  ? 'text-teal-700 dark:text-teal-300 font-medium'
+                  : 'text-slate-600 dark:text-slate-400'
                   }`}
               >
                 {session.title}
@@ -93,8 +93,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Text className="text-teal-700 dark:text-teal-400 font-bold text-xs">DR</Text>
             </View>
             <View className="flex-1">
-              <Text className="text-sm font-bold text-slate-800 dark:text-slate-100">Dr. Patient</Text>
-              <Text className="text-[10px] text-slate-500 dark:text-slate-400">Chief Medical Officer</Text>
+              <Text className="text-sm font-bold text-slate-800 dark:text-slate-100">Dr. Areej Shahbaz</Text>
+              <Text className="text-[10px] text-slate-500 dark:text-slate-400">Chief Executive Officer</Text>
             </View>
             <TouchableOpacity>
               <LogOut size={16} color={isDark ? '#94a3b8' : '#64748b'} />

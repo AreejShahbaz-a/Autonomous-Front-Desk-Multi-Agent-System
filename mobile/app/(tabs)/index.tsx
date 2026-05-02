@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardAwareFlatList } from 'react-native-keyboard-aware-scroll-view';
 import { useChat } from '@/hooks/useChat';
 import { ChatMessage } from '@/components/chat/ChatMessage';
 import { ChatInput } from '@/components/chat/ChatInput';
@@ -51,7 +50,7 @@ export default function ChatScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['top']} className="bg-white dark:bg-[#0B1120]">
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
           {/* Header */}
@@ -90,22 +89,20 @@ export default function ChatScreen() {
             </View>
           </View>
 
-          <KeyboardAwareFlatList
+          <FlatList
             ref={flatListRef as any}
             data={messages}
             keyExtractor={(item) => item.id}
             className="flex-1 px-4"
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 10 }}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
-            enableOnAndroid
-            extraScrollHeight={16}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             ListEmptyComponent={
               <View className="flex-1 items-center justify-center mt-12 px-6">
                 <View className="w-20 h-20 bg-teal-50 dark:bg-teal-900/20 rounded-3xl items-center justify-center mb-8 border border-teal-100/50 dark:border-teal-800/30">
-                  <Stethoscope size={18} color="#0d9488" />
+                  <Stethoscope size={30} color="#0d9488" />
                 </View>
                 <Text className="text-3xl font-bold text-slate-900 dark:text-white mb-3 text-center tracking-tight">
                   How can I help you today?

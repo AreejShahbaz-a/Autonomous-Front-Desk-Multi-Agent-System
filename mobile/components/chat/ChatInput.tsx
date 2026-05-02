@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Keyboard } from 'react-native';
 import { SendHorizontal } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -10,7 +9,6 @@ interface ChatInputProps {
 
 export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isTyping }) => {
   const [text, setText] = useState('');
-  const insets = useSafeAreaInsets();
 
   const handleSend = () => {
     if (text.trim() && !isTyping) {
@@ -24,7 +22,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isTyping }) => {
   return (
     <View 
       className="px-4 pt-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0B1120]"
-      style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+      style={{ paddingBottom: 8 }}
     >
       <View className="flex-row items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl px-4 py-2 shadow-sm">
         <TextInput

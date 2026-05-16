@@ -3,13 +3,11 @@ import uuid from 'react-native-uuid';
 import Constants from 'expo-constants';
 
 const getApiUrl = () => {
-  const hostUri = Constants.expoConfig?.hostUri;
-  if (hostUri) {
-    const host = hostUri.split(':')[0];
-    return `http://${host}:8000/api/chat`;
+  if (process.env.EXPO_PUBLIC_API_URL && !process.env.EXPO_PUBLIC_API_URL.includes('10.0.2.2')) {
+    return `${process.env.EXPO_PUBLIC_API_URL}/api/chat`;
   }
 
-  return 'http://192.168.100.3:8000/api/chat';
+  return 'http://192.168.100.198:8000/api/chat';
 };
 
 const API_URL = getApiUrl();

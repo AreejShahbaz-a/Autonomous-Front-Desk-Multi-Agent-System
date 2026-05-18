@@ -163,6 +163,12 @@ def create_doctor(doctor: Doctor, db: sqlite3.Connection = Depends(get_db), curr
             (doctor.doctor_id, doctor.doctor_name, doctor.specialization, doctor.email, doctor.phone, doctor.available_days)
         )
         db.commit()
+        if doctor.email:
+            send_email(
+                doctor.email, 
+                "Welcome to Medicare", 
+                f"Hi Dr. {doctor.doctor_name},\n\nWelcome to Medicare! Your profile has been created with ID: {doctor.doctor_id}."
+            )
         return doctor
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=400, detail="Doctor already exists")

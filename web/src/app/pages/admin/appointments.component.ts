@@ -25,7 +25,6 @@ import { API_BASE_URL } from '../../config/api.config';
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Doctor</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Date & Time</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800/50">
@@ -52,13 +51,9 @@ import { API_BASE_URL } from '../../config/api.config';
                   <option value="cancelled">Cancelled</option>
                 </select>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="openModal(appt)" class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 mr-3 px-2 py-1 rounded hover:bg-teal-50 dark:hover:bg-teal-900/30 transition"><i class="ph ph-pencil-simple md:text-lg"></i></button>
-                <button (click)="deleteAppt(appt.appointment_id)" class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition"><i class="ph ph-trash md:text-lg"></i></button>
-              </td>
             </tr>
             <tr *ngIf="appointments.length === 0">
-              <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-sm">
+              <td colspan="5" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-sm">
                 No appointments found.
               </td>
             </tr>

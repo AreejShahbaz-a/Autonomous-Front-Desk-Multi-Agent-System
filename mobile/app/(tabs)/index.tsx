@@ -13,7 +13,7 @@ const SUGGESTED_ACTIONS = [
   { id: '1', text: 'Register patient', icon: UserPlus },
   { id: '2', text: 'Book an appointment', icon: Calendar },
   { id: '3', text: 'Show appointments', icon: ClipboardList },
-  { id: '4', text: 'Check symptoms', icon: Activity },
+  { id: '4', text: 'General Inquiries', icon: Activity },
 ];
 
 export default function ChatScreen() {

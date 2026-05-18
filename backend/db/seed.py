@@ -39,7 +39,7 @@ def seed_data():
     ]
 
     cursor.executemany("""
-        INSERT INTO patients 
+        INSERT OR IGNORE INTO patients 
         (patient_number, patient_name, contact, cnic, address, email, gender)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """, patients)
@@ -61,7 +61,7 @@ def seed_data():
     ]
 
     cursor.executemany("""
-        INSERT INTO doctors 
+        INSERT OR IGNORE INTO doctors 
         (doctor_id, doctor_name, specialization, email, phone, available_days)
         VALUES (?, ?, ?, ?, ?, ?)
     """, doctors)
@@ -70,10 +70,20 @@ def seed_data():
     # APPOINTMENTS (EMPTY INITIALLY)
     # =========================
     cursor.execute("""
-        INSERT INTO appointments 
+        INSERT OR IGNORE INTO appointments 
         (patient_number, doctor_id, appointment_date, appointment_time, status)
         VALUES (?, ?, ?, ?, ?)
     """, ("P001", "D001", "2026-04-20", "10:00", "scheduled"))
+
+    # =========================
+    # ADMINS (1 RECORD)
+    # =========================
+    import hashlib
+    admin_pass_hash = hashlib.sha256("admin123".encode()).hexdigest()
+    cursor.execute("""
+        INSERT OR IGNORE INTO admins (email, password_hash, name)
+        VALUES (?, ?, ?)
+    """, ("admin@medicare.com", admin_pass_hash, "Administrator"))
 
     conn.commit()
     conn.close()

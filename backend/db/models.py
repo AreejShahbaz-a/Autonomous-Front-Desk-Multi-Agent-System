@@ -46,5 +46,14 @@ def create_tables():
         )
     """)
 
+    # ADMINS TABLE
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admins (
+            email TEXT PRIMARY KEY,
+            password_hash TEXT NOT NULL,
+            name TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()

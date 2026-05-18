@@ -1,18 +1,26 @@
 import { Component, HostBinding } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faStethoscope, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import { faStethoscope, faSpinner, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { API_BASE_URL } from '../../config/api.config';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, FontAwesomeModule],
+  imports: [CommonModule, FormsModule, FontAwesomeModule, RouterModule],
   template: `
-    <div class="min-h-screen bg-slate-50 dark:bg-[#0B1120] flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-300">
+    <div class="relative min-h-screen bg-slate-50 dark:bg-[#0B1120] flex flex-col justify-center py-12 sm:px-6 lg:px-8 transition-colors duration-300">
+      <!-- Back Button -->
+      <div class="absolute top-6 left-6 z-20">
+        <a routerLink="/" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-teal-600 dark:hover:text-teal-400 border border-slate-200 dark:border-slate-800/50 hover:border-teal-200 dark:hover:border-teal-800 shadow-sm hover:shadow transition-all duration-200">
+          <fa-icon [icon]="faArrowLeft"></fa-icon>
+          <span>Back to Home</span>
+        </a>
+      </div>
+
       <div class="sm:mx-auto sm:w-full sm:max-w-md">
         <div class="flex justify-center mb-4">
           <div class="w-14 h-14 rounded-lg bg-teal-50 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 border border-teal-200 dark:border-teal-800/50 shadow-sm">
@@ -68,8 +76,9 @@ import { API_BASE_URL } from '../../config/api.config';
 export class LoginComponent {
   faStethoscope = faStethoscope;
   faSpinner = faSpinner;
-  email = 'admin@medicare.com'; // Default test credentials prepopulated
-  password = 'admin123';
+  faArrowLeft = faArrowLeft;
+  email = '';
+  password = '';
   loading = false;
   error = '';
 

@@ -3,7 +3,10 @@ from pydantic import BaseModel
 from typing import List, Optional
 import sqlite3
 from db.database import get_connection
-
+import jwt
+import datetime
+import hashlib
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from utils.email import send_templated_email, send_email
 
 router = APIRouter()
@@ -43,12 +46,32 @@ class Appointment(BaseModel):
     status: str = 'scheduled'
     event_id: Optional[str] = None
 
-# Admin Auth
-@router.post("/auth/login", response_model=LoginResponse)
-def login(req: LoginRequest):
-    if req.email == "admin@medicare.com" and req.password == "admin123":
-        return {"access_token": "fake-jwt-token-for-demo", "token_type": "bearer"}
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+SECRET_KEY = "medicare-super-secret-key-12345"
+ALGORITHM = "HS256"
+
+security = HTTPBearer()
+
+def create_access_token(data: dict, expires_delta: Optional[datetime.timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired admin token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 # Ensure fake token middleware locally is fine for now but not critical
 def get_db():
@@ -59,16 +82,33 @@ def get_db():
     finally:
         conn.close()
 
+# Admin Auth
+@router.post("/auth/login", response_model=LoginResponse)
+def login(req: LoginRequest, db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM admins WHERE email = ?", (req.email,))
+    row = cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    admin = dict(row)
+    hashed_pass = hashlib.sha256(req.password.encode()).hexdigest()
+    if hashed_pass != admin["password_hash"]:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+    access_token = create_access_token(data={"sub": admin["email"], "name": admin["name"]})
+    return {"access_token": access_token, "token_type": "bearer"}
+
 # --- Patients CRUD ---
 @router.get("/patients", response_model=List[Patient])
-def get_patients(db: sqlite3.Connection = Depends(get_db)):
+def get_patients(db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     cursor.execute("SELECT * FROM patients")
     rows = cursor.fetchall()
     return [dict(row) for row in rows]
 
 @router.post("/patients", response_model=Patient)
-def create_patient(patient: Patient, db: sqlite3.Connection = Depends(get_db)):
+def create_patient(patient: Patient, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     try:
         cursor.execute(
@@ -82,7 +122,7 @@ def create_patient(patient: Patient, db: sqlite3.Connection = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Patient already exists")
 
 @router.put("/patients/{patient_number}", response_model=Patient)
-def update_patient(patient_number: str, patient: Patient, db: sqlite3.Connection = Depends(get_db)):
+def update_patient(patient_number: str, patient: Patient, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     cursor.execute(
         """UPDATE patients 
@@ -99,7 +139,7 @@ def update_patient(patient_number: str, patient: Patient, db: sqlite3.Connection
     return patient
 
 @router.delete("/patients/{patient_number}")
-def delete_patient(patient_number: str, db: sqlite3.Connection = Depends(get_db)):
+def delete_patient(patient_number: str, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     cursor.execute("DELETE FROM patients WHERE patient_number = ?", (patient_number,))
     db.commit()
@@ -107,14 +147,14 @@ def delete_patient(patient_number: str, db: sqlite3.Connection = Depends(get_db)
 
 # --- Doctors CRUD ---
 @router.get("/doctors", response_model=List[Doctor])
-def get_doctors(db: sqlite3.Connection = Depends(get_db)):
+def get_doctors(db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     cursor.execute("SELECT * FROM doctors")
     rows = cursor.fetchall()
     return [dict(row) for row in rows]
 
 @router.post("/doctors", response_model=Doctor)
-def create_doctor(doctor: Doctor, db: sqlite3.Connection = Depends(get_db)):
+def create_doctor(doctor: Doctor, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     try:
         cursor.execute(
@@ -128,7 +168,7 @@ def create_doctor(doctor: Doctor, db: sqlite3.Connection = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Doctor already exists")
 
 @router.put("/doctors/{doctor_id}", response_model=Doctor)
-def update_doctor(doctor_id: str, doctor: Doctor, db: sqlite3.Connection = Depends(get_db)):
+def update_doctor(doctor_id: str, doctor: Doctor, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     cursor.execute(
         """UPDATE doctors 
@@ -145,7 +185,7 @@ def update_doctor(doctor_id: str, doctor: Doctor, db: sqlite3.Connection = Depen
     return doctor
 
 @router.delete("/doctors/{doctor_id}")
-def delete_doctor(doctor_id: str, db: sqlite3.Connection = Depends(get_db)):
+def delete_doctor(doctor_id: str, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     cursor.execute("DELETE FROM doctors WHERE doctor_id = ?", (doctor_id,))
     db.commit()
@@ -159,7 +199,7 @@ class AppointmentUpdate(BaseModel):
 
 # --- Appointments CRUD ---
 @router.get("/appointments", response_model=List[dict])
-def get_appointments(db: sqlite3.Connection = Depends(get_db)):
+def get_appointments(db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     # join to get names
     cursor.execute('''
@@ -172,7 +212,7 @@ def get_appointments(db: sqlite3.Connection = Depends(get_db)):
     return [dict(row) for row in rows]
 
 @router.put("/appointments/{appointment_id}")
-def update_appointment(appointment_id: int, appt_update: AppointmentUpdate, db: sqlite3.Connection = Depends(get_db)):
+def update_appointment(appointment_id: int, appt_update: AppointmentUpdate, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     # Fetch existing
     cursor.execute('''
@@ -231,7 +271,7 @@ def update_appointment(appointment_id: int, appt_update: AppointmentUpdate, db: 
     return {"status": "updated"}
 
 @router.delete("/appointments/{appointment_id}")
-def delete_appointment(appointment_id: int, db: sqlite3.Connection = Depends(get_db)):
+def delete_appointment(appointment_id: int, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     cursor.execute("DELETE FROM appointments WHERE appointment_id = ?", (appointment_id,))
     db.commit()
@@ -240,7 +280,7 @@ def delete_appointment(appointment_id: int, db: sqlite3.Connection = Depends(get
 
 # --- Analytics ---
 @router.get("/analytics")
-def get_analytics(db: sqlite3.Connection = Depends(get_db)):
+def get_analytics(db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
     cursor.execute("SELECT COUNT(*) FROM patients")
     total_patients = cursor.fetchone()[0]

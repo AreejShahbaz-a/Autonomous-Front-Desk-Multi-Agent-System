@@ -13,39 +13,39 @@ import { API_BASE_URL } from '../../config/api.config';
   template: `
     <div class="space-y-6">
       <div class="flex items-center justify-between">
-        <h2 class="text-2xl font-bold text-gray-900">Manage Appointments</h2>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Manage Appointments</h2>
       </div>
 
-      <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <table class="min-w-full divide-y border-gray-200">
-          <thead class="bg-gray-50">
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/50 rounded-xl shadow-sm overflow-hidden">
+        <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800/50">
+          <thead class="bg-slate-50 dark:bg-slate-800/50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">ID</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Patient</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Doctor</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Date & Time</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr *ngFor="let appt of appointments" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{appt.appointment_id}}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><div class="flex items-center gap-2"><i class="ph ph-user text-gray-400"></i> {{appt.patient_name}}</div></td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><div class="flex items-center gap-2"><i class="ph ph-stethoscope text-gray-400"></i> Dr. {{appt.doctor_name}}</div></td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+          <tbody class="bg-white dark:bg-slate-900 divide-y divide-slate-200 dark:divide-slate-800/50">
+            <tr *ngFor="let appt of appointments" class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 dark:text-white">#{{appt.appointment_id}}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300"><div class="flex items-center gap-2"><i class="ph ph-user text-slate-400 dark:text-slate-500"></i> {{appt.patient_name}}</div></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300"><div class="flex items-center gap-2"><i class="ph ph-stethoscope text-slate-400 dark:text-slate-500"></i> Dr. {{appt.doctor_name}}</div></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 dark:text-slate-300">
                 <div class="flex flex-col">
-                  <span class="font-medium text-gray-900">{{appt.appointment_date}}</span>
+                  <span class="font-medium text-slate-900 dark:text-white">{{appt.appointment_date}}</span>
                   <span>{{appt.appointment_time}}</span>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
                 <select [ngModel]="appt.status" (ngModelChange)="updateStatus(appt, $event)"
-                  class="text-sm rounded-md border-gray-300 py-1 pl-2 pr-6 focus:ring-blue-500 focus:border-blue-500"
+                  class="text-sm rounded-md border-slate-300 dark:border-slate-600 py-1 pl-2 pr-6 focus:ring-teal-500 focus:border-teal-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                   [ngClass]="{
-                    'bg-blue-50 text-blue-700': appt.status === 'scheduled',
-                    'bg-green-50 text-green-700': appt.status === 'completed',
-                    'bg-red-50 text-red-700': appt.status === 'cancelled'
+                    'bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300': appt.status === 'scheduled',
+                    'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300': appt.status === 'completed',
+                    'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300': appt.status === 'cancelled'
                   }">
                   <option value="scheduled">Scheduled</option>
                   <option value="completed">Completed</option>
@@ -53,12 +53,12 @@ import { API_BASE_URL } from '../../config/api.config';
                 </select>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button (click)="openModal(appt)" class="text-blue-600 hover:text-blue-900 mr-3 px-2 py-1 rounded hover:bg-blue-50 transition"><i class="ph ph-pencil-simple md:text-lg"></i></button>
-                <button (click)="deleteAppt(appt.appointment_id)" class="text-red-600 hover:text-red-900 px-2 py-1 rounded hover:bg-red-50 transition"><i class="ph ph-trash md:text-lg"></i></button>
+                <button (click)="openModal(appt)" class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 mr-3 px-2 py-1 rounded hover:bg-teal-50 dark:hover:bg-teal-900/30 transition"><i class="ph ph-pencil-simple md:text-lg"></i></button>
+                <button (click)="deleteAppt(appt.appointment_id)" class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition"><i class="ph ph-trash md:text-lg"></i></button>
               </td>
             </tr>
             <tr *ngIf="appointments.length === 0">
-              <td colspan="6" class="px-6 py-12 text-center text-gray-500 text-sm">
+              <td colspan="6" class="px-6 py-12 text-center text-slate-500 dark:text-slate-400 text-sm">
                 No appointments found.
               </td>
             </tr>
@@ -67,26 +67,26 @@ import { API_BASE_URL } from '../../config/api.config';
       </div>
 
       <!-- Reschedule Modal -->
-      <div *ngIf="showModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+      <div *ngIf="showModal" class="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800/50">
           <div class="flex justify-between items-center mb-5">
-            <h3 class="text-lg font-bold text-gray-900">Reschedule Appointment</h3>
-            <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Reschedule Appointment</h3>
+            <button (click)="closeModal()" class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
               <i class="ph ph-x text-xl"></i>
             </button>
           </div>
           
           <form (ngSubmit)="saveAppt()" class="space-y-4">
-            <div><label class="block text-sm font-medium text-gray-700">Date</label>
-              <input name="date" type="date" [(ngModel)]="currentAppt.appointment_date" required class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+            <div><label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">Date</label>
+              <input name="date" type="date" [(ngModel)]="currentAppt.appointment_date" required class="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-teal-500 focus:border-teal-500 sm:text-sm" />
             </div>
-            <div><label class="block text-sm font-medium text-gray-700">Time</label>
-              <input name="time" type="time" [(ngModel)]="currentAppt.appointment_time" required class="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+            <div><label class="block text-sm font-semibold text-slate-700 dark:text-slate-200">Time</label>
+              <input name="time" type="time" [(ngModel)]="currentAppt.appointment_time" required class="mt-1 block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-teal-500 focus:border-teal-500 sm:text-sm" />
             </div>
 
             <div class="pt-4 flex justify-end gap-3">
-              <button type="button" (click)="closeModal()" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Cancel</button>
-              <button type="submit" class="bg-blue-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Save Changes</button>
+              <button type="button" (click)="closeModal()" class="bg-white dark:bg-slate-800 py-2 px-4 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-teal-500 transition-colors">Cancel</button>
+              <button type="submit" class="bg-teal-600 hover:bg-teal-700 dark:bg-teal-700 dark:hover:bg-teal-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-900 focus:ring-teal-500 transition-colors">Save Changes</button>
             </div>
           </form>
         </div>

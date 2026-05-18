@@ -66,20 +66,22 @@ import { API_BASE_URL } from '../../config/api.config';
   `
 })
 export class LoginComponent {
+  faStethoscope = faStethoscope;
+  faSpinner = faSpinner;
   email = 'admin@medicare.com'; // Default test credentials prepopulated
   password = 'admin123';
   loading = false;
   error = '';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   onSubmit() {
     this.loading = true;
     this.error = '';
-    
+
     // Fallback if environment doesn't exist
     const apiUrl = API_BASE_URL + '/api';
-    
+
     this.http.post<any>(`${apiUrl}/admin/auth/login`, {
       email: this.email,
       password: this.password

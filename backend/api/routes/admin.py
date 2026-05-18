@@ -4,6 +4,8 @@ from typing import List, Optional
 import sqlite3
 from db.database import get_connection
 
+from utils.email import send_templated_email, send_email
+
 router = APIRouter()
 
 # DTOs
@@ -79,6 +81,23 @@ def create_patient(patient: Patient, db: sqlite3.Connection = Depends(get_db)):
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=400, detail="Patient already exists")
 
+@router.put("/patients/{patient_number}", response_model=Patient)
+def update_patient(patient_number: str, patient: Patient, db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    cursor.execute(
+        """UPDATE patients 
+           SET patient_name=?, contact=?, cnic=?, address=?, email=?, gender=? 
+           WHERE patient_number=?""",
+        (patient.patient_name, patient.contact, patient.cnic, patient.address, patient.email, patient.gender, patient_number)
+    )
+    db.commit()
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Patient not found")
+        
+    if patient.email:
+        send_email(patient.email, "Profile Updated", f"Hi {patient.patient_name},\n\nYour profile has been updated by the hospital administration.")
+    return patient
+
 @router.delete("/patients/{patient_number}")
 def delete_patient(patient_number: str, db: sqlite3.Connection = Depends(get_db)):
     cursor = db.cursor()
@@ -108,12 +127,35 @@ def create_doctor(doctor: Doctor, db: sqlite3.Connection = Depends(get_db)):
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=400, detail="Doctor already exists")
 
+@router.put("/doctors/{doctor_id}", response_model=Doctor)
+def update_doctor(doctor_id: str, doctor: Doctor, db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    cursor.execute(
+        """UPDATE doctors 
+           SET doctor_name=?, specialization=?, email=?, phone=?, available_days=? 
+           WHERE doctor_id=?""",
+        (doctor.doctor_name, doctor.specialization, doctor.email, doctor.phone, doctor.available_days, doctor_id)
+    )
+    db.commit()
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+        
+    if doctor.email:
+        send_email(doctor.email, "Profile Updated", f"Hi Dr. {doctor.doctor_name},\n\nYour profile has been updated by the hospital administration.")
+    return doctor
+
 @router.delete("/doctors/{doctor_id}")
 def delete_doctor(doctor_id: str, db: sqlite3.Connection = Depends(get_db)):
     cursor = db.cursor()
     cursor.execute("DELETE FROM doctors WHERE doctor_id = ?", (doctor_id,))
     db.commit()
     return {"status": "deleted"}
+
+class AppointmentUpdate(BaseModel):
+    doctor_id: Optional[str] = None
+    appointment_date: Optional[str] = None
+    appointment_time: Optional[str] = None
+    status: Optional[str] = None
 
 # --- Appointments CRUD ---
 @router.get("/appointments", response_model=List[dict])
@@ -128,6 +170,65 @@ def get_appointments(db: sqlite3.Connection = Depends(get_db)):
     ''')
     rows = cursor.fetchall()
     return [dict(row) for row in rows]
+
+@router.put("/appointments/{appointment_id}")
+def update_appointment(appointment_id: int, appt_update: AppointmentUpdate, db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    # Fetch existing
+    cursor.execute('''
+        SELECT a.*, p.patient_name, p.email as patient_email, d.doctor_name 
+        FROM appointments a
+        JOIN patients p ON a.patient_number = p.patient_number
+        JOIN doctors d ON a.doctor_id = d.doctor_id
+        WHERE a.appointment_id = ?
+    ''', (appointment_id,))
+    row = cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    existing = dict(row)
+    
+    new_doc = appt_update.doctor_id or existing['doctor_id']
+    new_date = appt_update.appointment_date or existing['appointment_date']
+    new_time = appt_update.appointment_time or existing['appointment_time']
+    new_status = appt_update.status or existing['status']
+    
+    cursor.execute('''
+        UPDATE appointments
+        SET doctor_id = ?, appointment_date = ?, appointment_time = ?, status = ?
+        WHERE appointment_id = ?
+    ''', (new_doc, new_date, new_time, new_status, appointment_id))
+    db.commit()
+    
+    if existing['patient_email']:
+        if existing['status'] != 'cancelled' and new_status == 'cancelled':
+            send_templated_email(
+                existing['patient_email'],
+                "Appointment Cancelled",
+                "appointment_cancelled.html",
+                {
+                    "patient_name": existing['patient_name'],
+                    "doctor_name": existing['doctor_name'],
+                    "date": existing['appointment_date'],
+                    "time": existing['appointment_time'],
+                    "appointment_id": appointment_id
+                }
+            )
+        elif existing['appointment_date'] != new_date or existing['appointment_time'] != new_time:
+            send_templated_email(
+                existing['patient_email'],
+                "Appointment Rescheduled",
+                "appointment_rescheduled.html",
+                {
+                    "patient_name": existing['patient_name'],
+                    "doctor_name": existing['doctor_name'], # Note: simplified if doc changes
+                    "date": new_date,
+                    "time": new_time,
+                    "appointment_id": appointment_id
+                }
+            )
+            
+    return {"status": "updated"}
 
 @router.delete("/appointments/{appointment_id}")
 def delete_appointment(appointment_id: int, db: sqlite3.Connection = Depends(get_db)):

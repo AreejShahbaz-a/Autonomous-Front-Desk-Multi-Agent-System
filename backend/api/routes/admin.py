@@ -262,6 +262,8 @@ def update_appointment(appointment_id: int, appt_update: AppointmentUpdate, db: 
                 {
                     "patient_name": existing['patient_name'],
                     "doctor_name": existing['doctor_name'], # Note: simplified if doc changes
+                    "new_date": new_date,
+                    "new_time": new_time,
                     "date": new_date,
                     "time": new_time,
                     "appointment_id": appointment_id

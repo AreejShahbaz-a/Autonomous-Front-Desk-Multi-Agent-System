@@ -2,6 +2,7 @@ from agents import function_tool
 from utils.google_calendar import create_event, delete_event
 import datetime
 import sqlite3
+import re
 from db.database import get_connection
 from datetime import timedelta
 from dateparser.date import DateDataParser
@@ -34,23 +35,43 @@ def parse_appointment_datetime(user_input: str):
     }
 
 
+def _normalize_doctor_name(value: str) -> str:
+    """Normalize doctor names for tolerant matching."""
+
+    cleaned = re.sub(r"[^a-z0-9]+", "", value.lower())
+    cleaned = re.sub(r"^(doctor|dr)", "", cleaned)
+    return cleaned
+
+
+def _find_doctor_row(doctor_name: str):
+    """Return the matching doctor row using normalized name matching."""
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT doctor_id, doctor_name, specialization, available_days
+        FROM doctors
+        """
+    )
+    rows = cursor.fetchall()
+    conn.close()
+
+    target_name = _normalize_doctor_name(doctor_name)
+    for row in rows:
+        if _normalize_doctor_name(row[1]) == target_name:
+            return row
+
+    return None
+
+
 def get_doctor_id(doctor_name: str):
     """
     Returns doctor_id for a given doctor_name.
     Used for mapping user input to internal system IDs.
     """
 
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT doctor_id
-        FROM doctors
-        WHERE doctor_name = ?
-    """, (doctor_name,))
-
-    row = cursor.fetchone()
-    conn.close()
+    row = _find_doctor_row(doctor_name)
 
     if not row:
         return "DOCTOR_NOT_FOUND"
@@ -59,25 +80,15 @@ def get_doctor_id(doctor_name: str):
 
 @function_tool
 def get_doctor_information(doctor_name: str):
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT doctor_name, specialization, available_days
-        FROM doctors
-        WHERE doctor_name = ?
-    """, (doctor_name,))
-
-    result = cursor.fetchone()
-    conn.close()
+    result = _find_doctor_row(doctor_name)
 
     if not result:
         return "DOCTOR_NOT_FOUND"
 
     return {
-        "doctor_name": result[0],
-        "specialization": result[1],
-        "available_days": result[2]
+        "doctor_name": result[1],
+        "specialization": result[2],
+        "available_days": result[3]
     }
 
 

@@ -106,14 +106,14 @@ import { API_BASE_URL } from '../../config/api.config';
                   </svg>
                 </button>
                 
-                <button *ngFor="let page of [].constructor(totalPages); let i = index" 
-                  (click)="setPage(i + 1)"
+                <button *ngFor="let page of pages" 
+                  (click)="setPage(page)"
                   [ngClass]="{
-                    'z-10 bg-teal-50 dark:bg-teal-950/30 border-teal-500 text-teal-600 dark:text-teal-400': currentPage === i + 1,
-                    'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700': currentPage !== i + 1
+                    'z-10 bg-teal-50 dark:bg-teal-950/30 border-teal-500 text-teal-600 dark:text-teal-400': currentPage === page,
+                    'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700': currentPage !== page
                   }"
                   class="relative inline-flex items-center px-4 py-2 border text-sm font-semibold transition">
-                  {{ i + 1 }}
+                  {{ page }}
                 </button>
 
                 <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition disabled:opacity-50">
@@ -199,6 +199,8 @@ export class AppointmentsComponent implements OnInit {
 
   currentPage = 1;
   pageSize = 10;
+  pages: number[] = [];
+  paginatedAppointments: any[] = [];
 
   loading = false;
   savingStatus = false;
@@ -228,9 +230,12 @@ export class AppointmentsComponent implements OnInit {
       next: (res) => {
         this.appointments = res;
         this.loading = false;
+        const total = Math.ceil(this.appointments.length / this.pageSize);
+        this.pages = Array.from({ length: total }, (_, i) => i + 1);
         if (this.currentPage > this.totalPages && this.totalPages > 0) {
           this.currentPage = this.totalPages;
         }
+        this.updatePaginatedList();
       },
       error: (err) => {
         console.error("Error loading appointments", err);
@@ -239,9 +244,9 @@ export class AppointmentsComponent implements OnInit {
     });
   }
 
-  get paginatedAppointments(): any[] {
+  updatePaginatedList() {
     const startIndex = (this.currentPage - 1) * this.pageSize;
-    return this.appointments.slice(startIndex, startIndex + this.pageSize);
+    this.paginatedAppointments = this.appointments.slice(startIndex, startIndex + this.pageSize);
   }
 
   get totalPages(): number {
@@ -263,17 +268,20 @@ export class AppointmentsComponent implements OnInit {
   previousPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
+      this.updatePaginatedList();
     }
   }
 
   nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
+      this.updatePaginatedList();
     }
   }
 
   setPage(page: number) {
     this.currentPage = page;
+    this.updatePaginatedList();
   }
 
   confirmStatusChange(appt: any, newStatus: string) {

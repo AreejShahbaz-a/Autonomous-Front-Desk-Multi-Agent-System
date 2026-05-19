@@ -1,8 +1,9 @@
-import { Component, OnInit, HostBinding } from '@angular/core';
+import { Component, OnInit, HostBinding, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { Router } from '@angular/router';
 import { faPencil, faTrash, faPlus, faTimes, faSpinner, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { API_BASE_URL } from '../../config/api.config';
 
@@ -96,14 +97,14 @@ import { API_BASE_URL } from '../../config/api.config';
                   </svg>
                 </button>
                 
-                <button *ngFor="let page of [].constructor(totalPages); let i = index" 
-                  (click)="setPage(i + 1)"
+                <button *ngFor="let page of pages" 
+                  (click)="setPage(page)"
                   [ngClass]="{
-                    'z-10 bg-teal-500/20 border-teal-500/50 text-teal-300': currentPage === i + 1,
-                    'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700/80': currentPage !== i + 1
+                    'z-10 bg-teal-500/20 border-teal-500/50 text-teal-300': currentPage === page,
+                    'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700/80': currentPage !== page
                   }"
                   class="relative inline-flex items-center px-4 py-2 border text-sm font-semibold transition">
-                  {{ i + 1 }}
+                  {{ page }}
                 </button>
  
                 <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-slate-700 bg-slate-800 text-sm font-semibold text-slate-400 hover:bg-slate-700/80 transition disabled:opacity-50">
@@ -282,6 +283,8 @@ export class DoctorsComponent implements OnInit {
 
   currentPage = 1;
   pageSize = 10;
+  pages: number[] = [];
+  paginatedDoctors: any[] = [];
 
   loading = false;
   savingDoctor = false;
@@ -293,32 +296,44 @@ export class DoctorsComponent implements OnInit {
 
   @HostBinding('class.dark') isDark = true;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.loadDoctors();
   }
 
+  reloadComponent() {
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['/admin/doctors']);
+    });
+  }
+
   loadDoctors() {
     this.loading = true;
+    this.cdr.markForCheck();
     this.http.get<any[]>(`${this.apiUrl}/doctors`).subscribe({
       next: (res) => {
         this.doctors = res;
         this.loading = false;
+        const total = Math.ceil(this.doctors.length / this.pageSize);
+        this.pages = Array.from({ length: total }, (_, i) => i + 1);
         if (this.currentPage > this.totalPages && this.totalPages > 0) {
           this.currentPage = this.totalPages;
         }
+        this.updatePaginatedList();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error("Error loading doctors", err);
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
 
-  get paginatedDoctors(): any[] {
+  updatePaginatedList() {
     const startIndex = (this.currentPage - 1) * this.pageSize;
-    return this.doctors.slice(startIndex, startIndex + this.pageSize);
+    this.paginatedDoctors = this.doctors.slice(startIndex, startIndex + this.pageSize);
   }
 
   get totalPages(): number {
@@ -340,17 +355,20 @@ export class DoctorsComponent implements OnInit {
   previousPage() {
     if (this.currentPage > 1) {
       this.currentPage--;
+      this.updatePaginatedList();
     }
   }
 
   nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
+      this.updatePaginatedList();
     }
   }
 
   setPage(page: number) {
     this.currentPage = page;
+    this.updatePaginatedList();
   }
 
   generateNextDoctorId(): string {
@@ -429,9 +447,9 @@ export class DoctorsComponent implements OnInit {
     if (this.isEditing) {
       this.http.put(`${this.apiUrl}/doctors/${this.currentDoc.doctor_id}`, this.currentDoc).subscribe({
         next: () => {
-          this.loadDoctors();
-          this.closeModal();
           this.savingDoctor = false;
+          this.closeModal();
+          this.reloadComponent();
         },
         error: (err) => {
           console.error("Error updating doctor", err);
@@ -441,9 +459,9 @@ export class DoctorsComponent implements OnInit {
     } else {
       this.http.post(`${this.apiUrl}/doctors`, this.currentDoc).subscribe({
         next: () => {
-          this.loadDoctors();
-          this.closeModal();
           this.savingDoctor = false;
+          this.closeModal();
+          this.reloadComponent();
         },
         error: (err) => {
           console.error("Error creating doctor", err);
@@ -471,8 +489,8 @@ export class DoctorsComponent implements OnInit {
       this.savingDelete = true;
       this.http.delete(`${this.apiUrl}/doctors/${this.pendingDeleteId}`).subscribe({
         next: () => {
-          this.loadDoctors();
           this.cancelDelete();
+          this.reloadComponent();
         },
         error: (err) => {
           console.error("Error deleting doctor", err);

@@ -191,6 +191,8 @@ def book_appointment(patient_number: str, doctor_name: str, date: str, time: str
     """, (patient_number, doctor_id, date,time,event_id))
     appointment_id = cursor.lastrowid
     conn.commit()
+    
+    # Notify Patient
     try:
         cursor.execute("SELECT email, patient_name FROM patients WHERE patient_number = ?", (patient_number,))
         row = cursor.fetchone()
@@ -209,8 +211,27 @@ def book_appointment(patient_number: str, doctor_name: str, date: str, time: str
                 "plain": f"Your appointment is confirmed for {date} at {time}."
             }
             send_templated_email(patient_email, subject, "appointment_confirmed.html", context)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Error sending confirmation email to patient: {e}")
+
+    # Notify Doctor
+    try:
+        cursor.execute("SELECT email, doctor_name FROM doctors WHERE doctor_id = ?", (doctor_id,))
+        doc_row = cursor.fetchone()
+        if doc_row and doc_row[0]:
+            doc_email = doc_row[0]
+            doc_name = doc_row[1]
+            cursor.execute("SELECT patient_name FROM patients WHERE patient_number = ?", (patient_number,))
+            pat_row = cursor.fetchone()
+            pat_name = pat_row[0] if pat_row else "Patient"
+            
+            send_email(
+                doc_email,
+                "New Appointment Scheduled",
+                f"Hi Dr. {doc_name},\n\nA new appointment has been scheduled with you.\n\nPatient: {pat_name} (Number: {patient_number})\nDate: {date}\nTime: {time}\nAppointment ID: {appointment_id}\n\nThank you!"
+            )
+    except Exception as e:
+        print(f"Error sending confirmation email to doctor: {e}")
 
     conn.close()
 
@@ -226,9 +247,9 @@ def cancel_appointment_by_id(appointment_id: int):
     conn = get_connection()
     cursor = conn.cursor()
 
-    # 1. Get event_id + status + patient_number
+    # 1. Get event_id + status + patient_number + doctor_id
     cursor.execute("""
-        SELECT event_id, status, patient_number
+        SELECT event_id, status, patient_number, doctor_id, appointment_date, appointment_time
         FROM appointments
         WHERE appointment_id = ?
     """, (appointment_id,))
@@ -239,7 +260,7 @@ def cancel_appointment_by_id(appointment_id: int):
         conn.close()
         return "Appointment not found."
 
-    event_id, status, patient_number = row
+    event_id, status, patient_number, doctor_id, appointment_date, appointment_time = row
 
     if status == "cancelled":
         conn.close()
@@ -253,7 +274,8 @@ def cancel_appointment_by_id(appointment_id: int):
     """, (appointment_id,))
 
     conn.commit()
-    # Try to get patient email and notify
+    
+    # Notify Patient
     try:
         cursor.execute("SELECT email, patient_name FROM patients WHERE patient_number = ?", (patient_number,))
         prow = cursor.fetchone()
@@ -270,7 +292,26 @@ def cancel_appointment_by_id(appointment_id: int):
             }
             send_templated_email(patient_email, subject, "appointment_cancelled.html", context)
     except Exception as e:
-        print(f"Error sending cancellation email: {e}")
+        print(f"Error sending cancellation email to patient: {e}")
+
+    # Notify Doctor
+    try:
+        cursor.execute("SELECT email, doctor_name FROM doctors WHERE doctor_id = ?", (doctor_id,))
+        doc_row = cursor.fetchone()
+        if doc_row and doc_row[0]:
+            doc_email = doc_row[0]
+            doc_name = doc_row[1]
+            cursor.execute("SELECT patient_name FROM patients WHERE patient_number = ?", (patient_number,))
+            pat_row = cursor.fetchone()
+            pat_name = pat_row[0] if pat_row else "Patient"
+            
+            send_email(
+                doc_email,
+                "Appointment Cancelled",
+                f"Hi Dr. {doc_name},\n\nYour appointment (ID: {appointment_id}) with patient {pat_name} scheduled for {appointment_date} at {appointment_time} has been cancelled."
+            )
+    except Exception as e:
+        print(f"Error sending cancellation email to doctor: {e}")
 
     conn.close()
 
@@ -363,6 +404,7 @@ def reschedule_appointment(appointment_id: int, new_date: str, new_time: str):
     """, (new_date, new_time, event_id, appointment_id))
 
     conn.commit()
+    
     # Notify patient about reschedule (best-effort)
     try:
         from utils.email import send_templated_email
@@ -381,7 +423,26 @@ def reschedule_appointment(appointment_id: int, new_date: str, new_time: str):
             }
             send_templated_email(patient_email, subject, "appointment_rescheduled.html", context)
     except Exception as e:
-        print(f"Error sending reschedule email: {e}")
+        print(f"Error sending reschedule email to patient: {e}")
+
+    # Notify doctor about reschedule
+    try:
+        cursor.execute("SELECT email, doctor_name FROM doctors WHERE doctor_id = ?", (doctor_id,))
+        doc_row = cursor.fetchone()
+        if doc_row and doc_row[0]:
+            doc_email = doc_row[0]
+            doc_name = doc_row[1]
+            cursor.execute("SELECT patient_name FROM patients WHERE patient_number = ?", (patient_number,))
+            pat_row = cursor.fetchone()
+            pat_name = pat_row[0] if pat_row else "Patient"
+            
+            send_email(
+                doc_email,
+                "Appointment Rescheduled",
+                f"Hi Dr. {doc_name},\n\nYour appointment (ID: {appointment_id}) with patient {pat_name} has been rescheduled.\n\nOld Date/Time: {old_date} at {old_time}\nNew Date/Time: {new_date} at {new_time}"
+            )
+    except Exception as e:
+        print(f"Error sending reschedule email to doctor: {e}")
 
     conn.close()
 

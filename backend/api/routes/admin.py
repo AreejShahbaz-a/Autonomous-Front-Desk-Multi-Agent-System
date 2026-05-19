@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel
 from typing import List, Optional
 import sqlite3
+import threading
 from db.database import get_connection
 import jwt
 import datetime
@@ -141,6 +142,7 @@ def update_patient(patient_number: str, patient: Patient, db: sqlite3.Connection
 @router.delete("/patients/{patient_number}")
 def delete_patient(patient_number: str, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
+    cursor.execute("DELETE FROM appointments WHERE patient_number = ?", (patient_number,))
     cursor.execute("DELETE FROM patients WHERE patient_number = ?", (patient_number,))
     db.commit()
     return {"status": "deleted"}
@@ -164,11 +166,11 @@ def create_doctor(doctor: Doctor, db: sqlite3.Connection = Depends(get_db), curr
         )
         db.commit()
         if doctor.email:
-            send_email(
-                doctor.email, 
-                "Welcome to Medicare", 
-                f"Hi Dr. {doctor.doctor_name},\n\nWelcome to Medicare! Your profile has been created with ID: {doctor.doctor_id}."
-            )
+            threading.Thread(
+                target=send_email,
+                args=(doctor.email, "Welcome to Medicare", f"Hi Dr. {doctor.doctor_name},\n\nWelcome to Medicare! Your profile has been created with ID: {doctor.doctor_id}."),
+                daemon=True
+            ).start()
         return doctor
     except sqlite3.IntegrityError:
         raise HTTPException(status_code=400, detail="Doctor already exists")
@@ -187,12 +189,17 @@ def update_doctor(doctor_id: str, doctor: Doctor, db: sqlite3.Connection = Depen
         raise HTTPException(status_code=404, detail="Doctor not found")
         
     if doctor.email:
-        send_email(doctor.email, "Profile Updated", f"Hi Dr. {doctor.doctor_name},\n\nYour profile has been updated by the hospital administration.")
+        threading.Thread(
+            target=send_email,
+            args=(doctor.email, "Profile Updated", f"Hi Dr. {doctor.doctor_name},\n\nYour profile has been updated by the hospital administration."),
+            daemon=True
+        ).start()
     return doctor
 
 @router.delete("/doctors/{doctor_id}")
 def delete_doctor(doctor_id: str, db: sqlite3.Connection = Depends(get_db), current_admin: dict = Depends(get_current_admin)):
     cursor = db.cursor()
+    cursor.execute("DELETE FROM appointments WHERE doctor_id = ?", (doctor_id,))
     cursor.execute("DELETE FROM doctors WHERE doctor_id = ?", (doctor_id,))
     db.commit()
     return {"status": "deleted"}
@@ -222,7 +229,7 @@ def update_appointment(appointment_id: int, appt_update: AppointmentUpdate, db: 
     cursor = db.cursor()
     # Fetch existing
     cursor.execute('''
-        SELECT a.*, p.patient_name, p.email as patient_email, d.doctor_name 
+        SELECT a.*, p.patient_name, p.email as patient_email, d.doctor_name, d.email as doctor_email 
         FROM appointments a
         JOIN patients p ON a.patient_number = p.patient_number
         JOIN doctors d ON a.doctor_id = d.doctor_id
@@ -246,6 +253,7 @@ def update_appointment(appointment_id: int, appt_update: AppointmentUpdate, db: 
     ''', (new_doc, new_date, new_time, new_status, appointment_id))
     db.commit()
     
+    # Notify Patient
     if existing['patient_email']:
         if existing['status'] != 'cancelled' and new_status == 'cancelled':
             send_templated_email(
@@ -267,7 +275,7 @@ def update_appointment(appointment_id: int, appt_update: AppointmentUpdate, db: 
                 "appointment_rescheduled.html",
                 {
                     "patient_name": existing['patient_name'],
-                    "doctor_name": existing['doctor_name'], # Note: simplified if doc changes
+                    "doctor_name": existing['doctor_name'],
                     "new_date": new_date,
                     "new_time": new_time,
                     "date": new_date,
@@ -275,6 +283,44 @@ def update_appointment(appointment_id: int, appt_update: AppointmentUpdate, db: 
                     "appointment_id": appointment_id
                 }
             )
+            
+    try:
+        if new_doc != existing['doctor_id']:
+            # Doctor changed: notify old doctor and new doctor
+            if existing['doctor_email']:
+                send_email(
+                    existing['doctor_email'],
+                    "Appointment Reassigned",
+                    f"Hi Dr. {existing['doctor_name']},\n\nAppointment ID {appointment_id} with patient {existing['patient_name']} has been reassigned to another doctor."
+                )
+            
+            cursor.execute("SELECT email, doctor_name FROM doctors WHERE doctor_id = ?", (new_doc,))
+            new_doc_row = cursor.fetchone()
+            if new_doc_row and new_doc_row[0]:
+                new_doctor_email = new_doc_row[0]
+                new_doctor_name = new_doc_row[1]
+                send_email(
+                    new_doctor_email,
+                    "New Appointment Scheduled",
+                    f"Hi Dr. {new_doctor_name},\n\nA new appointment (ID: {appointment_id}) has been assigned to you.\n\nPatient: {existing['patient_name']}\nDate: {new_date}\nTime: {new_time}\nStatus: {new_status}"
+                )
+        else:
+            # Same doctor: notify of rescheduled date/time or cancellation
+            if existing['doctor_email']:
+                if existing['status'] != 'cancelled' and new_status == 'cancelled':
+                    send_email(
+                        existing['doctor_email'],
+                        "Appointment Cancelled",
+                        f"Hi Dr. {existing['doctor_name']},\n\nYour appointment (ID: {appointment_id}) with patient {existing['patient_name']} scheduled for {existing['appointment_date']} at {existing['appointment_time']} has been cancelled."
+                    )
+                elif existing['appointment_date'] != new_date or existing['appointment_time'] != new_time:
+                    send_email(
+                        existing['doctor_email'],
+                        "Appointment Rescheduled",
+                        f"Hi Dr. {existing['doctor_name']},\n\nYour appointment (ID: {appointment_id}) with patient {existing['patient_name']} has been rescheduled.\n\nOld Date/Time: {existing['appointment_date']} at {existing['appointment_time']}\nNew Date/Time: {new_date} at {new_time}"
+                    )
+    except Exception as e:
+        print(f"Error notifying doctor of appointment update: {e}")
             
     return {"status": "updated"}
 
